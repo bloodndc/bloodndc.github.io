@@ -37,7 +37,7 @@ dataset instead of an empty page.
 | `about.html` | Mission, compatibility matrix, credits |
 | `faq.html` | Donation eligibility + product FAQ (FAQPage schema) |
 | `privacy.html` | Privacy policy, terms, contact form |
-| `admin.html` | Moderator dashboard (UID allow-list) |
+| `admin.html` | Moderator dashboard (email + password sign-in) |
 | `offline.html` | Offline fallback served by the service worker |
 
 ---
@@ -54,11 +54,15 @@ Project: `blood-donate-ndc`
    Without this step every read returns *Missing or insufficient permissions*
    and the site silently falls back to local demo data.
 
-### 2. Moderator access
+### 2. Moderator access (email + password)
 
-1. Open the deployed `admin.html` — it prints your anonymous **UID** with a copy button.
-2. Paste that UID into `ADMIN_UIDS` in [`assets/js/config.js`](assets/js/config.js).
-3. Commit and redeploy. Only UIDs in that array can open the dashboard.
+1. In the Firebase console open **Authentication → Sign-in method** and enable **Email/Password**.
+2. Open **Authentication → Users → Add user** and create the moderator account
+   (email + a strong password). Only accounts created here can moderate.
+3. Publish [`firestore.rules`](firestore.rules) — it grants moderator writes to
+   Email/Password accounts only (the app itself can never register one).
+4. Open the deployed `admin.html` and sign in with that email and password.
+   The session stays signed in on the device; use **Sign out** when done.
 
 ### 3. Deploy to GitHub Pages
 

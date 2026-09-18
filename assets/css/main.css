@@ -51,7 +51,11 @@
 }
 
 /* --------------------------------------------------- reset */
-*, *::before, *::after { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+/* No browser-default blue rings on click; themed ring for keyboard users only. */
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--red-500); outline-offset: 2px; }
 * { margin: 0; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 body {
@@ -887,8 +891,17 @@ select.input { appearance: none; background-image: url("data:image/svg+xml,%3Csv
 .gate-mark { width: 64px; height: 64px; margin: 0 auto 1rem; border-radius: 20px; display: grid; place-items: center;
   background: linear-gradient(155deg, var(--red-500), var(--red-700)); color: #fff; box-shadow: var(--sh-3); }
 .gate-mark .ico { width: 30px; height: 30px; }
-.gate-uidbox { text-align: left; margin: 1.1rem 0 .9rem; }
-.gate-uidbox > span { display: block; margin-bottom: .35rem; }
+.gate form { text-align: left; margin: 1.1rem 0 .4rem; display: grid; gap: .7rem; }
+.gate form .field { display: grid; gap: .3rem; }
+.gate-error { min-height: 1.2em; color: var(--red-700); font-size: .86rem; font-weight: 600; }
+.admin-session { display: flex; align-items: center; justify-content: space-between; gap: .8rem;
+  background: var(--red-050, #FBEDEF); border: 1px solid var(--line); border-radius: var(--r-sm);
+  padding: .55rem .9rem; margin-bottom: 1rem; }
+.offer-attendant { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  background: var(--red-050, #FBEDEF); border: 1px dashed var(--red-300, #E5A0AA);
+  border-radius: var(--r-sm); padding: .8rem 1rem; margin: .9rem 0; text-align: left; }
+.offer-attendant-who { display: grid; }
+.gate-uid-legacy { display: none; }
 .gate-uid { display: flex; gap: .6rem; align-items: center; justify-content: space-between;
   background: var(--paper-2); border: 1.5px dashed var(--line-2); border-radius: var(--r-sm); padding: .7rem .9rem; }
 .gate-uid code { font-size: .82rem; word-break: break-all; text-align: left; }

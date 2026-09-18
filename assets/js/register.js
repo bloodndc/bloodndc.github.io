@@ -6,7 +6,6 @@ import { icon, toast, bootUI, dialog, shareUrl, copyText, bloodBadge, avatar, es
 import { DISTRICTS, getPosition } from './geo.js';
 import { DONATION_COOLDOWN_DAYS, LS } from './config.js';
 import { waitForAuth } from './firebase.js';
-import { ADMIN_UIDS } from './config.js';
 
 const state = { editingId: null, lat: null, lng: null, locationSource: 'district' };
 

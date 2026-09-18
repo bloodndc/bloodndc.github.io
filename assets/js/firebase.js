@@ -52,7 +52,10 @@ async function boot() {
 
 /** Anonymous session. Re-used across pages via localStorage. */
 export async function ensureAuth() {
-  await initFirebase();
+  // Wait for any restored session first — signing in during restore would
+  // create a second anonymous account and break owner-only writes.
+  const restored = await waitForAuth(4000);
+  if (restored) return restored;
   if (!state.authOk) return null;
   try {
     if (state.auth.currentUser) return state.auth.currentUser;

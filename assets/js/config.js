@@ -16,13 +16,10 @@ export const FIREBASE_CONFIG = {
 
 /* ---------------------------------------------------------------
    ADMIN ACCESS
-   Add the Firebase Auth UID of every person allowed to open the
-   admin panel. Open /admin.html while signed in — the page shows
-   your UID with a copy button. Paste it here, commit, redeploy.
+   Moderators sign in at /admin.html with an email + password account
+   created in the Firebase console (Authentication → Users → Add user).
+   No secrets live in this file.
    --------------------------------------------------------------- */
-export const ADMIN_UIDS = [
-  'mYIFf0m0p7TLwo5pKiSkZxU2CmN2'
-];
 
 /* Deploy the site to its real address and update these three, so
    canonical tags, Open Graph cards and the sitemap point correctly. */

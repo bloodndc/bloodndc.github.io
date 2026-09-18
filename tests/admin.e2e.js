@@ -1,8 +1,8 @@
 /* =============================================================
    Moderator dashboard test.
-   Runs against a throwaway copy of the site whose ADMIN_UIDS is
-   patched with the deterministic offline uid, so the real allow-list
-   is never touched and nothing is written to Firestore.
+   Runs against a throwaway copy of the site with Firebase network
+   blocked; the moderator sign-in flow is exercised with an emulated
+   Email/Password provider so nothing is written to Firestore.
 
    Run:  node tests/admin.e2e.js
    ============================================================= */
@@ -15,7 +15,6 @@ const { serve, chromiumPath, Reporter } = require('./serve');
 const SRC = path.join(__dirname, '..');
 const ROOT = path.join(os.tmpdir(), 'lifeline-admintest');
 const PORT = Number(process.env.PORT || 8129);
-const UID = 'anon_local_1'; // the deterministic uid used when Firebase is unreachable
 const r = new Reporter();
 const check = (n, c, d) => r.check(n, c, d);
 
@@ -26,10 +25,6 @@ const check = (n, c, d) => r.check(n, c, d);
   fs.rmSync(ROOT, { recursive: true, force: true });
   fs.cpSync(SRC, ROOT, { recursive: true, filter: (s) => !s.includes('/node_modules') && !s.includes('/tests') });
 
-  // Patch the allow-list BEFORE the browser caches config.js
-  const cfg = path.join(ROOT, 'assets/js/config.js');
-  fs.writeFileSync(cfg, fs.readFileSync(cfg, 'utf8').replace("// 'PASTE-YOUR-UID-HERE'", `'${UID}'`));
-  check('setup: ADMIN_UIDS patched in the test copy', fs.readFileSync(cfg, 'utf8').includes(UID));
 
   const server = await serve(ROOT, PORT);
   const browser = await chromium.launch({ executablePath: exe, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
@@ -81,16 +76,47 @@ const check = (n, c, d) => r.check(n, c, d);
   check('moderation: announcement create + delete', data.annsLeft === 0);
   check('data: contact messages stored', data.msgs >= 1);
 
-  /* ---------------- real initAdmin() with an allow-listed uid ---------------- */
+  /* ------- real initAdmin() + email/password sign-in (emulated Firebase) ------ */
   await page.evaluate(async () => {
     const fb = await import('/assets/js/firebase.js');
+    fb.state.ok = true;
     fb.state.authOk = true;
-    fb.state.auth = { currentUser: { uid: 'anon_local_1', isAnonymous: true } };
+    let listener = null;
+    let current = null; // no restored session in this browser
+    fb.state.auth = { get currentUser() { return current; } };
+    fb.state.fa = {
+      onAuthStateChanged(auth, cb) { listener = cb; setTimeout(() => cb(current), 30); return () => {}; },
+      signInWithEmailAndPassword(auth, email, pass) {
+        if (email !== 'moderator@onedrop.org' || pass !== 'hunter2hunter2') {
+          const e = new Error('Bad creds'); e.code = 'auth/invalid-credential';
+          return Promise.reject(e);
+        }
+        current = { uid: 'mod_local_1', email, providerData: [{ providerId: 'password' }] };
+        if (listener) listener(current);
+        return Promise.resolve({ user: current });
+      },
+      signOut() { current = null; if (listener) listener(null); return Promise.resolve(); }
+    };
     const admin = await import('/assets/js/admin.js');
     await admin.initAdmin();
   });
-  await page.waitForTimeout(1500);
-  check('admin: dashboard opens for an allow-listed uid', await page.locator('#adminPanel').isVisible());
+  await page.waitForTimeout(700);
+  check('admin: login card shown without a session', await page.locator('#adminLogin').isVisible());
+  check('admin: dashboard hidden before sign-in', !(await page.locator('#adminPanel').isVisible()));
+
+  await page.fill('#adminEmail', 'moderator@onedrop.org');
+  await page.fill('#adminPass', 'wrong-pass');
+  await page.click('#adminLoginBtn');
+  await page.waitForTimeout(400);
+  check('admin: wrong password shows friendly error',
+    /Wrong email or password/.test(await page.locator('#gateNote').textContent()));
+
+  await page.fill('#adminPass', 'hunter2hunter2');
+  await page.click('#adminLoginBtn');
+  await page.waitForTimeout(1200);
+  check('admin: dashboard opens after password sign-in', await page.locator('#adminPanel').isVisible());
+  check('admin: signed-in email shown',
+    (await page.locator('#adminEmailOut').textContent()).includes('moderator@'));
   check('admin: overview shows KPI cards', await page.locator('#overviewHost .stat-mini').count() >= 6,
     `cards=${await page.locator('#overviewHost .stat-mini').count()}`);
 
@@ -124,6 +150,28 @@ const check = (n, c, d) => r.check(n, c, d);
   await page.waitForTimeout(1400);
   check('home: published announcement is shown to visitors',
     (await page.locator('#announceHost').textContent()).includes('Test announcement'));
+
+  await page.goto(`${base}/admin.html`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(800);
+  await page.evaluate(async () => {
+    const fb = await import('/assets/js/firebase.js');
+    fb.state.ok = true; fb.state.authOk = true;
+    let current = { uid: 'mod_local_1', email: 'moderator@onedrop.org', providerData: [{ providerId: 'password' }] };
+    fb.state.auth = { get currentUser() { return current; } };
+    fb.state.fa = {
+      onAuthStateChanged(auth, cb) { setTimeout(() => cb(current), 20); return () => {}; },
+      signInWithEmailAndPassword() { return Promise.resolve({ user: current }); },
+      signOut() { current = null; return Promise.resolve(); }
+    };
+    const admin = await import('/assets/js/admin.js');
+    await admin.initAdmin();
+  });
+  await page.waitForTimeout(900);
+  check('admin: restored password session reopens dashboard', await page.locator('#adminPanel').isVisible());
+  await page.click('#adminSignOut');
+  await page.waitForTimeout(500);
+  check('admin: sign out returns to the login card',
+    (await page.locator('#adminGate').isVisible()) && !(await page.locator('#adminPanel').isVisible()));
 
   check('no uncaught page errors', errs.length === 0, errs.slice(0, 3).join(' | '));
 

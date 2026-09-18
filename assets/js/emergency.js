@@ -125,6 +125,13 @@ async function offerToDonate(r) {
     body: `<div class="offer">
       <p><strong>${_e(r.patient)}</strong> needs <strong>${r.units || 1} unit(s)</strong> of <strong>${r.bloodGroup}</strong> at ${_e(r.hospital || 'the hospital')}.</p>
       <p class="muted small">Call the attendant, confirm the requirement and the blood bank timing, then reach the hospital with your national ID.</p>
+      <div class="offer-attendant">
+        <div class="offer-attendant-who">
+          <strong>${_e(r.contactName || 'Attendant')}</strong>
+          <span class="muted small">is handling this request</span>
+        </div>
+        <button class="btn btn-primary btn-sm" type="button" data-rev="${r.phone}">${icon('phone')}<span>Show attendant contact</span></button>
+      </div>
       ${compat.length ? `<p class="offer-alt">Other ${_e(r.bloodGroup)} donors near this request:</p>
         <ul class="offer-list">${compat.map((d) => `<li><span>${_e(d.name)} · ${_e(d.area || d.district || '')}</span><button class="link-btn" data-rev="${d.phone}">Show contact</button></li>`).join('')}</ul>` : ''}
     </div>`,

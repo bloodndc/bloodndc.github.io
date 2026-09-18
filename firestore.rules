@@ -1,15 +1,27 @@
 rules_version = '2';
 
-// Firebase console → Firestore Database → Rules → paste this whole file → Publish.
-// Anyone can READ the directory. Only the anonymous session that created a record
-// can change it. Moderation actions (verify / suspend) are performed from the
-// moderator dashboard by the same rule set — see README for the stricter variant.
+// Firebase console -> Firestore Database -> Rules -> paste this whole file -> Publish.
+//
+// Access model
+//   * READ the directory: anyone.
+//   * CREATE / edit own records: any signed-in visitor (anonymous session).
+//   * MODERATOR powers (verify/suspend/delete any record, publish
+//     announcements, read the inbox, settings): ONLY Email/Password
+//     accounts - the users YOU create in the Firebase console under
+//     Authentication -> Users. Anonymous visitors can never get these.
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
     function isSignedIn() {
       return request.auth != null;
+    }
+
+    // Moderator = an account created in the Firebase console with the
+    // Email/Password provider (this app never registers such accounts).
+    function isModerator() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider == 'password';
     }
 
     // Phone numbers must look like a real Bangladeshi mobile number.
@@ -32,7 +44,8 @@ service cloud.firestore {
         && validPhone(request.resource.data.phone)
         && validGroup(request.resource.data.bloodGroup);
 
-      allow update, delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow update, delete: if isModerator()
+        || (isSignedIn() && resource.data.uid == request.auth.uid);
     }
 
     match /requests/{requestId} {
@@ -42,23 +55,22 @@ service cloud.firestore {
         && validPhone(request.resource.data.phone)
         && validGroup(request.resource.data.bloodGroup);
 
-      allow update, delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+      allow update, delete: if isModerator()
+        || (isSignedIn() && resource.data.uid == request.auth.uid);
     }
 
-    // Visitors may write a message; only moderators read them.
+    // Visitor inbox: anyone can write a message; only moderators read it.
     match /messages/{messageId} {
-      allow read: if isSignedIn();
+      allow read: if isModerator();
       allow create: if request.resource.data.message is string
                     && request.resource.data.message.size() < 1000;
-      allow update, delete: if isSignedIn();
+      allow update, delete: if isModerator();
     }
 
-    // Announcements and moderation actions.
-    // Tighten this by replacing isSignedIn() with an admin-UID check, e.g.:
-    //   request.auth.uid in ['ADMIN_UID_1', 'ADMIN_UID_2']
+    // Announcements, audit trail and settings: moderators only.
     match /announcements/{id} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if isModerator();
     }
 
     // Daily counters, best effort.
@@ -68,12 +80,12 @@ service cloud.firestore {
     }
 
     match /audit/{id} {
-      allow read, write: if isSignedIn();
+      allow read, write: if isModerator();
     }
 
     match /settings/{id} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if isModerator();
     }
 
     // Everything else: closed.

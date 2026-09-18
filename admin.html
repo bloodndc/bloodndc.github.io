@@ -15,12 +15,12 @@
   <meta property="og:site_name" content="One Drop — A Drop of Life">
   <meta property="og:title" content="Moderator Dashboard — One Drop">
   <meta property="og:description" content="Restricted area for One Drop moderators: verify donors, manage emergency requests and publish announcements.">
-  <meta property="og:image" content="assets/icons/icon-512.png">
+  <meta property="og:image" content="https://onedropndc.github.io/assets/img/logo-full.png">
   <meta property="og:url" content="https://onedropndc.github.io/admin.html">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Moderator Dashboard — One Drop">
   <meta name="twitter:description" content="Restricted area for One Drop moderators: verify donors, manage emergency requests and publish announcements.">
-  <meta name="twitter:image" content="assets/icons/icon-512.png">
+  <meta name="twitter:image" content="https://onedropndc.github.io/assets/img/logo-full.png">
 
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
@@ -40,7 +40,7 @@
       <div class="wrap">
         <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a> <span>/</span> <span>Moderator</span></nav>
         <h1>Moderator dashboard</h1>
-        <p>Restricted to UIDs listed in <code>assets/js/config.js</code>. Verify donors, manage emergency requests and publish announcements.</p>
+        <p>Sign in with the moderator account to verify donors, manage emergency requests and publish announcements.</p>
       </div>
     </section>
 
@@ -51,45 +51,44 @@
           <div class="gate-mark">
             <svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path d="M12 3.2 19 6v5.5c0 4.3-2.9 7.6-7 9.3-4.1-1.7-7-5-7-9.3V6l7-2.8Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
           </div>
-          <h2 style="font-size:1.4rem">Moderator access</h2>
-          <p class="muted small">This dashboard opens only for UIDs listed in <code>ADMIN_UIDS</code>
-            (<code>assets/js/config.js</code>).</p>
+          <h2 style="font-size:1.4rem">Moderator sign in</h2>
+          <p class="muted small">Use the moderator email &amp; password that was created in the
+            Firebase console (Authentication → Users → Add user).</p>
 
-          <div class="gate-uidbox">
-            <span class="muted small">Your session UID (identifies <em>this browser</em> — created automatically, no account needed):</span>
-            <div class="gate-uid">
-              <code id="myUid">—</code>
-              <button class="btn btn-primary btn-xs" type="button">Copy UID</button>
+          <form id="adminLogin" novalidate>
+            <div class="field">
+              <label for="adminEmail">Email</label>
+              <input class="input" id="adminEmail" name="adminEmail" type="email"
+                     autocomplete="username" placeholder="moderator@example.com" required>
             </div>
-          </div>
+            <div class="field">
+              <label for="adminPass">Password</label>
+              <input class="input" id="adminPass" name="adminPass" type="password"
+                     autocomplete="current-password" placeholder="••••••••" required>
+            </div>
+            <p class="gate-error" id="gateNote" role="alert"></p>
+            <button class="btn btn-primary" id="adminLoginBtn" type="submit">Sign in</button>
+          </form>
 
-          <ol class="gate-steps">
-            <li>Press <strong>Copy UID</strong> above.</li>
-            <li>In the repository, open <code>assets/js/config.js</code> and paste it inside the
-                <code>ADMIN_UIDS</code> array — e.g. <code>ADMIN_UIDS = ['PASTE-HERE']</code>.</li>
-            <li>Commit &amp; redeploy, then press <strong>Reload</strong> below.</li>
-          </ol>
-
-          <details class="faq-item" style="margin-bottom:1rem">
-            <summary>What is a UID and where do I get one?</summary>
+          <details class="faq-item" style="margin-top:1.1rem">
+            <summary>First time? Create the moderator account (one-time, ~2 minutes)</summary>
             <div class="faq-body">
-              When anyone opens this site, Firebase Authentication signs them in <em>anonymously</em>
-              (no email, no password) and assigns a random UID. That UID is what you see in the box above —
-              it appears automatically once the site can reach Firebase.
-              <br><br>
-              If the box shows a dash, two things must be done once in the
-              <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer">Firebase console</a>:
-              (1) <strong>Authentication → Sign-in method → Anonymous → Enable</strong>, and
-              (2) publish <code>firestore.rules</code> under <strong>Firestore → Rules</strong>.
-              Then reload this page and your UID will appear.
+              1. In the <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer">Firebase console</a>,
+              open <strong>Authentication → Sign-in method</strong> and enable <strong>Email/Password</strong>.<br>
+              2. Open <strong>Authentication → Users → Add user</strong>, enter the moderator email
+              and a strong password, and save.<br>
+              3. Publish <code>firestore.rules</code> under <strong>Firestore → Rules</strong> —
+              it grants moderator powers only to Email/Password accounts.<br>
+              4. Sign in on this page. The session stays signed in on this device.
             </div>
           </details>
-
-          <p class="muted small" id="gateNote" style="margin-bottom:1rem"></p>
-          <button class="btn btn-ghost btn-sm" type="button" onclick="location.reload()">Reload</button>
         </div>
 
         <div id="adminPanel" hidden>
+          <div class="admin-session">
+            <span class="muted small">Signed in as <strong id="adminEmailOut"></strong></span>
+            <button class="btn btn-ghost btn-xs" id="adminSignOut" type="button">Sign out</button>
+          </div>
           <div class="admin-tabs" role="tablist">
             <button data-tab="overview" class="is-active" role="tab">Overview</button>
             <button data-tab="donors" role="tab">Donors</button>

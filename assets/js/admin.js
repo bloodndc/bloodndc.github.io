@@ -1,15 +1,29 @@
-/* Moderator dashboard — UID allow-listed */
+/* Moderator dashboard — email/password sign-in */
 
-import { ADMIN_UIDS, APP, VAPID_KEY, FIREBASE_CONFIG } from './config.js';
+import { APP, VAPID_KEY, FIREBASE_CONFIG } from './config.js';
 import { initData, listDonors, listRequests, listMessages, markMessageRead, listAnnouncements,
          saveAnnouncement, deleteAnnouncement, updateDonor, deleteDonor, updateRequest, deleteRequest,
          clearLocalData, seedDemo, getStatSnapshot, isLive } from './data.js';
 import { bootUI, icon, toast, dialog, copyText, escapeHtml as _e, bloodBadge, avatar } from './ui.js';
 import { formatDate, formatDateTime, timeAgo, prettyPhone } from './blood.js';
 import { computeStats } from './stats.js';
-import { state as fb } from './firebase.js';
+import { state as fb, waitForAuth } from './firebase.js';
 
 let ctx = { donors: [], requests: [], messages: [], announcements: [] };
+
+const providerOf = (u) =>
+  (u && u.providerData && u.providerData[0] && u.providerData[0].providerId) ||
+  (u && u.isAnonymous ? 'anonymous' : '');
+
+function friendlyAuthError(err) {
+  const code = String((err && err.code) || '');
+  if (code.includes('invalid-credential') || code.includes('wrong-password')) return 'Wrong email or password.';
+  if (code.includes('user-not-found')) return 'No moderator account with that email. Create one in the Firebase console (Authentication → Users → Add user).';
+  if (code.includes('too-many-requests')) return 'Too many attempts. Wait a few minutes and try again.';
+  if (code.includes('network')) return 'Network problem while signing in. Check your connection.';
+  if (code.includes('invalid-email')) return 'That does not look like a valid email address.';
+  return 'Sign-in failed. ' + ((err && err.message) || '');
+}
 
 export async function initAdmin() {
   bootUI('about');
@@ -17,43 +31,54 @@ export async function initAdmin() {
 
   const gate = document.getElementById('adminGate');
   const panel = document.getElementById('adminPanel');
-  const uidOut = document.getElementById('myUid');
-  const user = fb.auth ? fb.auth.currentUser : null;
+  const note = document.getElementById('gateNote');
+  const form = document.getElementById('adminLogin');
 
-  if (!user) {
-    gate.hidden = false;
-    document.getElementById('gateNote').textContent = fb.ok
-      ? 'Anonymous sign-in did not complete. Make sure the Authentication → Sign-in method → Anonymous provider is enabled in the Firebase console.'
-      : 'Firebase could not be reached from this device, so identity cannot be verified.';
-    return;
+  function openSession(user) {
+    gate.hidden = true;
+    panel.hidden = false;
+    const emailOut = document.getElementById('adminEmailOut');
+    if (emailOut) emailOut.textContent = user.email || 'moderator';
+    const so = document.getElementById('adminSignOut');
+    if (so && !so.dataset.wired) {
+      so.dataset.wired = '1';
+      so.addEventListener('click', async () => {
+        try { await fb.fa.signOut(fb.auth); } catch {}
+        panel.hidden = true;
+        form.reset();
+        gate.hidden = false;
+        note.textContent = 'Signed out.';
+      });
+    }
+    loadAll().then(() => wireTabs());
   }
 
-  if (uidOut) {
-    uidOut.textContent = user.uid;
-    uidOut.nextElementSibling?.addEventListener('click', async () => {
-      const ok = await copyText(user.uid);
-      toast(ok ? 'UID copied.' : 'Copy failed.', ok ? 'success' : 'error');
-    });
-  }
+  // Firebase restores sessions asynchronously — wait for it, then require a
+  // password-provider (moderator) session. Everyone else sees the login card.
+  let user = await waitForAuth();
+  if (user && providerOf(user) !== 'password') user = null;
 
-  if (!ADMIN_UIDS.length) {
-    gate.hidden = false;
-    gate.classList.add('is-setup');
-    document.getElementById('gateNote').innerHTML =
-      'No administrator has been configured yet. Copy your UID above, paste it into <code>ADMIN_UIDS</code> in <code>assets/js/config.js</code>, then redeploy.';
-    return;
-  }
+  if (user) { openSession(user); return; }
 
-  if (!ADMIN_UIDS.includes(user.uid)) {
-    gate.hidden = false;
-    document.getElementById('gateNote').textContent = 'This UID is not on the moderator allow-list. Ask a team member to add it to assets/js/config.js.';
-    return;
-  }
+  if (!fb.ok) note.textContent = 'Firebase could not be reached from this device — check your connection and reload.';
+  gate.hidden = false;
 
-  gate.hidden = true;
-  panel.hidden = false;
-  await loadAll();
-  wireTabs();
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = form.adminEmail.value.trim();
+    const pass = form.adminPass.value;
+    if (!email || !pass) { note.textContent = 'Enter the moderator email and password.'; return; }
+    const btn = document.getElementById('adminLoginBtn');
+    btn.disabled = true; btn.textContent = 'Signing in…';
+    note.textContent = '';
+    try {
+      const cred = await fb.fa.signInWithEmailAndPassword(fb.auth, email, pass);
+      openSession(cred.user);
+    } catch (err) {
+      note.textContent = friendlyAuthError(err);
+      btn.disabled = false; btn.textContent = 'Sign in';
+    }
+  });
   wireAnnouncements();
   renderOverview();
 }
@@ -268,6 +293,17 @@ async function subscribePush() {
 
 /* ------------------------------------------------------ rules */
 export const FIRESTORE_RULES = `rules_version = '2';
+
+// Firebase console -> Firestore Database -> Rules -> paste this whole file -> Publish.
+//
+// Access model
+//   * READ the directory: anyone.
+//   * CREATE / edit own records: any signed-in visitor (anonymous session).
+//   * MODERATOR powers (verify/suspend/delete any record, publish
+//     announcements, read the inbox, settings): ONLY Email/Password
+//     accounts - the users YOU create in the Firebase console under
+//     Authentication -> Users. Anonymous visitors can never get these.
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -275,55 +311,81 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Moderator = an account created in the Firebase console with the
+    // Email/Password provider (this app never registers such accounts).
+    function isModerator() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider == 'password';
+    }
+
+    // Phone numbers must look like a real Bangladeshi mobile number.
+    function validPhone(v) {
+      return v is string && v.matches('^(\\+880|0)1[3-9][0-9]{8}$');
+    }
+
+    function validGroup(v) {
+      return v in ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
+    }
+
     match /donors/{donorId} {
       allow read: if true;
+
       allow create: if isSignedIn()
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.name is string
         && request.resource.data.name.size() > 1
         && request.resource.data.name.size() < 80
-        && request.resource.data.phone is string
-        && request.resource.data.phone.matches('^(\\\\+880|0)1[3-9][0-9]{8}$')
-        && request.resource.data.bloodGroup in ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
-      allow update, delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+        && validPhone(request.resource.data.phone)
+        && validGroup(request.resource.data.bloodGroup);
+
+      allow update, delete: if isModerator()
+        || (isSignedIn() && resource.data.uid == request.auth.uid);
     }
 
     match /requests/{requestId} {
       allow read: if true;
+
       allow create: if isSignedIn()
-        && request.resource.data.bloodGroup in ['A+','A-','B+','B-','AB+','AB-','O+','O-']
-        && request.resource.data.phone is string
-        && request.resource.data.phone.matches('^(\\\\+880|0)1[3-9][0-9]{8}$');
-      allow update, delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+        && validPhone(request.resource.data.phone)
+        && validGroup(request.resource.data.bloodGroup);
+
+      allow update, delete: if isModerator()
+        || (isSignedIn() && resource.data.uid == request.auth.uid);
     }
 
+    // Visitor inbox: anyone can write a message; only moderators read it.
     match /messages/{messageId} {
-      allow read: if isSignedIn();
-      allow create: if true && request.resource.data.message.size() < 1000;
-      allow update, delete: if isSignedIn();
+      allow read: if isModerator();
+      allow create: if request.resource.data.message is string
+                    && request.resource.data.message.size() < 1000;
+      allow update, delete: if isModerator();
     }
 
+    // Announcements, audit trail and settings: moderators only.
     match /announcements/{id} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if isModerator();
     }
 
+    // Daily counters, best effort.
     match /analytics/{day} {
       allow read: if true;
       allow write: if true;
     }
 
     match /audit/{id} {
-      allow read, write: if isSignedIn();
+      allow read, write: if isModerator();
     }
 
     match /settings/{id} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if isModerator();
     }
 
+    // Everything else: closed.
     match /{document=**} {
       allow read, write: if false;
     }
   }
-}`;
+}
+`;

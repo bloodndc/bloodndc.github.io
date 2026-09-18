@@ -73,22 +73,21 @@ export async function listDonors() {
       return snap.docs.map(docToObj);
     });
     if (out.length) writeLS(LS.DONORS, out);
-    else return mergeSeed(out);
-    return out;
+    return ovDonors.merge(out.length ? out : mergeSeed(out));
   } catch {
-    return mergeSeed(readLS(LS.DONORS, []));
+    return ovDonors.merge(mergeSeed(readLS(LS.DONORS, [])));
   }
 }
 
 export function subscribeDonors(cb) {
   initData().then(() => {
-    if (!fb.ok) { cb(readLS(LS.DONORS, []), 'local'); window.addEventListener('lifeline:local-change', () => cb(readLS(LS.DONORS, []), 'local')); return; }
+    if (!fb.ok) { cb(ovDonors.merge(readLS(LS.DONORS, [])), 'local'); window.addEventListener('lifeline:local-change', () => cb(ovDonors.merge(readLS(LS.DONORS, [])), 'local')); return; }
     const q = fb.fs.query(fb.fs.collection(fb.db, COL.DONORS), fb.fs.orderBy('createdAt', 'desc'));
     fb.fs.onSnapshot(q, (snap) => {
       const rows = snap.docs.map(docToObj);
       if (rows.length) writeLS(LS.DONORS, rows);
-      cb(rows.length ? rows : mergeSeed([]), 'live');
-    }, () => cb(mergeSeed(readLS(LS.DONORS, [])), 'local'));
+      cb(ovDonors.merge(rows.length ? rows : mergeSeed([])), 'live');
+    }, () => cb(ovDonors.merge(mergeSeed(readLS(LS.DONORS, []))), 'local'));
   });
 }
 
@@ -137,28 +136,34 @@ export async function addDonor(raw) {
   } catch {
     const local = { id: rid('donor'), ...data };
     const rows = readLS(LS.DONORS, []);
-    rows.unshift(local); writeLS(LS.DONORS, rows); ping();
+    rows.unshift(local); writeLS(LS.DONORS, rows);
+    ovDonors.add(local); ping();
     return local;
   }
 }
 
 export async function updateDonor(id, patch) {
   await initData();
+  await ensureAuth(); // owner / moderator writes need a session
   try {
     await tx('updateDonor', async () => fb.fs.updateDoc(fb.fs.doc(fb.db, COL.DONORS, id), { ...patch, updatedAt: serverTs() }));
     return true;
   } catch {
+    ovDonors.patch(id, { ...patch, updatedAt: now() });
     const rows = readLS(LS.DONORS, []);
     const i = rows.findIndex((r) => r.id === id);
-    if (i > -1) { rows[i] = { ...rows[i], ...patch, updatedAt: now() }; writeLS(LS.DONORS, rows); ping(); }
+    if (i > -1) { rows[i] = { ...rows[i], ...patch, updatedAt: now() }; writeLS(LS.DONORS, rows); }
+    ping();
     return false;
   }
 }
 
 export async function deleteDonor(id) {
   await initData();
+  await ensureAuth();
   try { await tx('deleteDonor', async () => fb.fs.deleteDoc(fb.fs.doc(fb.db, COL.DONORS, id))); return true; }
   catch {
+    ovDonors.del(id);
     writeLS(LS.DONORS, readLS(LS.DONORS, []).filter((r) => r.id !== id)); ping(); return false;
   }
 }
@@ -175,19 +180,42 @@ export async function listRequests() {
       return snap.docs.map(docToObj);
     });
     if (out.length) writeLS(LS.REQUESTS, out);
-    return out;
-  } catch { return readLS(LS.REQUESTS, []); }
+    return ovRequests.merge(out);
+  } catch { return ovRequests.merge(readLS(LS.REQUESTS, [])); }
 }
+
+/* Local overlay: writes that fell back to cache (server denied / offline)
+   still show up instantly, and survive live snapshots until synced. */
+function makeOverlay() {
+  const patches = new Map();   // id -> patch
+  const adds = [];             // rows created locally
+  const deletes = new Set();   // ids removed locally
+  return {
+    merge(rows) {
+      const out = rows
+        .filter((r) => !deletes.has(r.id))
+        .map((r) => (patches.has(r.id) ? { ...r, ...patches.get(r.id) } : r));
+      for (const a of adds) if (!out.some((r) => r.id === a.id)) out.unshift(a);
+      return out;
+    },
+    patch(id, patch) { patches.set(id, patch); },
+    add(row) { adds.unshift(row); },
+    del(id) { deletes.add(id); }
+  };
+}
+const ovDonors = makeOverlay();
+const ovRequests = makeOverlay();
+const ovMessages = makeOverlay();
 
 export function subscribeRequests(cb) {
   initData().then(() => {
-    if (!fb.ok) { cb(readLS(LS.REQUESTS, []), 'local'); window.addEventListener('lifeline:local-change', () => cb(readLS(LS.REQUESTS, []), 'local')); return; }
+    if (!fb.ok) { cb(ovRequests.merge(readLS(LS.REQUESTS, [])), 'local'); window.addEventListener('lifeline:local-change', () => cb(ovRequests.merge(readLS(LS.REQUESTS, [])), 'local')); return; }
     const q = fb.fs.query(fb.fs.collection(fb.db, COL.REQUESTS), fb.fs.orderBy('createdAt', 'desc'));
     fb.fs.onSnapshot(q, (snap) => {
       const rows = snap.docs.map(docToObj);
       writeLS(LS.REQUESTS, rows);
-      cb(rows, 'live');
-    }, () => cb(readLS(LS.REQUESTS, []), 'local'));
+      cb(ovRequests.merge(rows), 'live');
+    }, () => cb(ovRequests.merge(readLS(LS.REQUESTS, [])), 'local'));
   });
 }
 
@@ -225,26 +253,36 @@ export async function addRequest(raw) {
   } catch {
     const local = { id: rid('req'), ...data };
     const rows = readLS(LS.REQUESTS, []);
-    rows.unshift(local); writeLS(LS.REQUESTS, rows); ping();
+    rows.unshift(local); writeLS(LS.REQUESTS, rows);
+    ovRequests.add(local); ping();
     return local;
   }
 }
 
 export async function updateRequest(id, patch) {
   await initData();
+  await ensureAuth(); // owner / moderator writes need a session
   try { await tx('updateRequest', async () => fb.fs.updateDoc(fb.fs.doc(fb.db, COL.REQUESTS, id), { ...patch, updatedAt: serverTs() })); return true; }
   catch {
+    ovRequests.patch(id, { ...patch, updatedAt: now() });
     const rows = readLS(LS.REQUESTS, []);
     const i = rows.findIndex((r) => r.id === id);
-    if (i > -1) { rows[i] = { ...rows[i], ...patch, updatedAt: now() }; writeLS(LS.REQUESTS, rows); ping(); }
+    if (i > -1) { rows[i] = { ...rows[i], ...patch, updatedAt: now() }; writeLS(LS.REQUESTS, rows); }
+    ping();
     return false;
   }
 }
 
 export async function deleteRequest(id) {
   await initData();
+  await ensureAuth();
   try { await tx('deleteRequest', async () => fb.fs.deleteDoc(fb.fs.doc(fb.db, COL.REQUESTS, id))); return true; }
-  catch { writeLS(LS.REQUESTS, readLS(LS.REQUESTS, []).filter((r) => r.id !== id)); ping(); return false; }
+  catch {
+    ovRequests.del(id);
+    writeLS(LS.REQUESTS, readLS(LS.REQUESTS, []).filter((r) => r.id !== id));
+    ping();
+    return false;
+  }
 }
 
 /* ===========================================================
@@ -315,20 +353,25 @@ export async function sendMessage(doc) {
 export async function listMessages() {
   await initData();
   try {
-    return await tx('listMessages', async () => {
+    const out = await tx('listMessages', async () => {
       const snap = await fb.fs.getDocs(fb.fs.query(fb.fs.collection(fb.db, COL.MESSAGES), fb.fs.orderBy('createdAt', 'desc')));
       return snap.docs.map(docToObj);
     });
-  } catch { return readLS('lifeline:cache:messages', []); }
+    if (out.length) writeLS('lifeline:cache:messages', out);
+    return ovMessages.merge(out);
+  } catch { return ovMessages.merge(readLS('lifeline:cache:messages', [])); }
 }
 
 export async function markMessageRead(id) {
   await initData();
+  await ensureAuth();
   try { await tx('markMessageRead', async () => fb.fs.updateDoc(fb.fs.doc(fb.db, COL.MESSAGES, id), { read: true })); }
   catch {
+    ovMessages.patch(id, { read: true });
     const rows = readLS('lifeline:cache:messages', []);
     const i = rows.findIndex((r) => r.id === id);
     if (i > -1) { rows[i].read = true; writeLS('lifeline:cache:messages', rows); }
+    ping();
   }
 }
 

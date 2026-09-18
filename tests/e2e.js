@@ -161,6 +161,31 @@ const check = (n, c, d) => r.check(n, c, d);
   check('emergency: seeded requests listed', await page.locator('#requestFeed .req-card').count() >= 3);
   check('emergency: countdown is running', /\d/.test(await page.locator('.req-count').first().textContent()));
 
+  await page.locator('#requestFeed .req-card [data-act="contact"]').first().click();
+  await page.waitForTimeout(700);
+  check('emergency: offer dialog shows attendant contact',
+    (await page.locator('.offer-attendant [data-rev]').count()) === 1);
+  await page.locator('.offer-attendant [data-rev]').click();
+  await page.waitForTimeout(500);
+  check('emergency: attendant number revealed with call + whatsapp',
+    (await page.locator('.modal .reveal-num').count()) >= 1 &&
+    (await page.locator('.modal a[href^="tel:"]').count()) >= 1);
+  await page.locator('.modal [data-ok]').last().click(); // close reveal dialog
+  await page.waitForTimeout(300);
+  await page.locator('.modal [data-ok]').last().click(); // close offer dialog
+  await page.waitForTimeout(400);
+
+  const activeBefore = await page.locator('#requestFeed .req-card:not(.is-closed)').count();
+  await page.locator('#requestFeed .req-card:not(.is-closed) [data-act="done"]').first().click();
+  await page.waitForTimeout(400);
+  await page.locator('.modal [data-ok]').first().click(); // confirm fulfilled
+  await page.waitForTimeout(900);
+  const activeAfter = await page.locator('#requestFeed .req-card:not(.is-closed)').count();
+  check('emergency: fulfilled request leaves the active list', activeAfter === activeBefore - 1,
+    `before=${activeBefore} after=${activeAfter}`);
+  check('emergency: fulfilled request listed under closed',
+    /Closed/.test(await page.locator('.closed-wrap summary').textContent()));
+
   await page.locator('#r-patient').fill('E2E Patient (40)');
   await page.locator('#r-group').selectOption('B-');
   await page.locator('#r-units').fill('2');
