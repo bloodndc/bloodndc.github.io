@@ -77,7 +77,12 @@ export function mountShell(active = 'home') {
         <button class="icon-btn only-mobile" id="btnMenu" aria-expanded="false" aria-controls="mobileNav" aria-label="Open menu">${icon('menu')}</button>
       </div>
     </div>
-    <nav class="nav mobile" id="mobileNav" hidden aria-label="Mobile navigation">${navLinks}</nav>
+    <nav class="nav mobile" id="mobileNav" hidden aria-label="Mobile navigation">${navLinks}
+      <div class="mob-extra">
+        <a href="my-donor.html" class="navlink ${active === 'mydonor' ? 'is-active' : ''}">${icon('user')}<span>My donor profile</span></a>
+        <a href="privacy.html#contact" class="navlink">${icon('chat')}<span>Contact the team</span></a>
+      </div>
+    </nav>
   </header>
   <div class="netbar" id="netbar" hidden>${icon('wifi')}<span>Offline — showing the last saved data. Requests you make are stored on this device.</span></div>`);
 

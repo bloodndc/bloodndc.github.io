@@ -71,9 +71,9 @@
           <span class="eyebrow"><span class="beat"></span> Student-run · Free forever · Bangladesh</span>
           <h1>Every minute matters when someone needs <span class="accent">blood</span>.</h1>
           <p class="hero-sub">
-            One Drop connects people in urgent need with verified voluntary donors nearby.
-            Search by blood group, filter by district, sort by distance — and reach a donor
-            in the time it takes to make one phone call.
+            One Drop is a volunteer blood-donor network run by the students of Notre Dame College, Dhaka.
+            We connect families in urgent need with willing donors nearby — matched by blood group, filtered
+            by district, sorted by distance — so the right phone call happens in minutes, not hours.
           </p>
 
           <form class="quick-search" id="quickSearch" role="search" aria-label="Find a donor">
@@ -131,7 +131,8 @@
         <div class="section-head" data-reveal>
           <span class="kicker">Live emergency board</span>
           <h2>People waiting for blood right now</h2>
-          <p>These requests are posted by families and hospital volunteers. If you match, one call can save a life.</p>
+          <p>Every request below was posted by a family member or a hospital volunteer, and each one carries a live
+            countdown. If your blood group matches, a single call from you could end someone’s worst night.</p>
         </div>
         <div class="req-grid" id="homeRequests"></div>
         <div style="margin-top:1.4rem" data-reveal>
@@ -146,7 +147,8 @@
         <div class="section-head" data-reveal>
           <span class="kicker">The network today</span>
           <h2>A living directory, not a static list</h2>
-          <p>Every number below updates the moment a donor registers or marks themselves available.</p>
+          <p>These figures move in real time — a new registration, a donor returning from cooling-off, a request marked
+            fulfilled. Behind every number is a person who said, “call me when you need me.”</p>
         </div>
         <div id="statsHost"></div>
       </div>
@@ -156,9 +158,9 @@
     <section class="section" id="groups">
       <div class="wrap">
         <div class="section-head" data-reveal>
-          <span class="kicker">Jump straight in</span>
+          <span class="kicker">Start with a blood group</span>
           <h2>Which blood group do you need?</h2>
-          <p>Tap a group to open the donor directory already filtered for it.</p>
+          <p>Choose a group to open the directory pre-filtered, with a live count of donors currently available.</p>
         </div>
         <div class="group-grid" id="quickPool">
           <button class="group-tile" data-quick-group="A+" data-reveal><span class="gt-drop" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.2c.3 0 .6.1.8.4 1.6 2 6.2 7.1 6.2 11.2A7 7 0 0 1 12 21a7 7 0 0 1-7-7.2c0-4.1 4.6-9.2 6.2-11.2.2-.3.5-.4.8-.4Z" fill="currentColor"/></svg></span><span class="gt-type">A+</span><span class="gt-count"><span data-pool="A+">0</span> available</span><span class="gt-go">Find donors →</span></button>
@@ -179,7 +181,8 @@
         <div class="section-head" data-reveal>
           <span class="kicker">Know before you call</span>
           <h2>Blood compatibility, in ten seconds</h2>
-          <p>In an emergency, doctors may use compatible groups rather than an exact match. This tool tells you which donors are worth calling first.</p>
+          <p>When an exact match is unavailable, hospitals often accept compatible alternatives. This chart shows who is
+            worth calling first — the final decision always rests with the blood bank.</p>
         </div>
         <div class="panel" id="compatHost" data-reveal></div>
       </div>
@@ -191,33 +194,10 @@
         <div class="section-head" data-reveal>
           <span class="kicker">Sixty-second self check</span>
           <h2>Can I donate today?</h2>
-          <p>Pick your blood group and the date of your last donation — we will tell you instantly whether the 56-day cooling-off has passed.</p>
+          <p>Choose your blood group and the date of your last donation. We will tell you instantly whether the standard
+            56-day cooling-off has passed — so you can promise only what your body can safely give.</p>
         </div>
         <div class="panel" id="eligibilityHost" data-reveal></div>
-      </div>
-    </section>
-
-    <!-- QUICK ACCESS -->
-    <section class="section quick-strip-sec">
-      <div class="wrap">
-        <div class="quick-strip" data-reveal>
-          <a class="quick-card" href="my-donor.html">
-            <span class="qc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4.8 20c.6-3.7 3.6-5.8 7.2-5.8s6.6 2.1 7.2 5.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-            <span class="qc-body">
-              <strong>Your donor profile</strong>
-              <span>View &amp; edit your details, pause your listing or log a donation — anytime, from your device.</span>
-            </span>
-            <span class="qc-arrow" aria-hidden="true">→</span>
-          </a>
-          <a class="quick-card" href="privacy.html#contact">
-            <span class="qc-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 12c0 4-3.8 7.2-8.5 7.2-1 0-2-.15-2.9-.42L4 20.4l1.3-3.4A6.9 6.9 0 0 1 3.5 12c0-4 3.8-7.2 8.5-7.2s8.5 3.2 8.5 7.2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
-            <span class="qc-body">
-              <strong>Contact the team</strong>
-              <span>Report a fake listing, request a removal, or ask anything — moderators read every message.</span>
-            </span>
-            <span class="qc-arrow" aria-hidden="true">→</span>
-          </a>
-        </div>
       </div>
     </section>
 
@@ -232,17 +212,20 @@
           <article class="step" data-reveal>
             <div class="step-num">1</div>
             <h3>Post the need</h3>
-            <p>A family member or hospital volunteer posts the patient’s blood group, hospital and deadline. It appears on the live board instantly.</p>
+            <p>A family member or hospital volunteer posts the patient’s blood group, hospital and the time by which the
+            blood is needed. The request goes live on the board immediately, with a countdown everyone can see.</p>
           </article>
           <article class="step" data-reveal>
             <div class="step-num">2</div>
             <h3>Donors get alerted</h3>
-            <p>Everyone who turned on emergency alerts is notified, and matching donors can be sorted by distance from the hospital.</p>
+            <p>Every volunteer who switched on alerts is notified within seconds. Matching donors appear sorted by distance
+            from the hospital, so the nearest possible help surfaces first.</p>
           </article>
           <article class="step" data-reveal>
             <div class="step-num">3</div>
             <h3>Confirm and donate</h3>
-            <p>The requester reveals the donor’s number, confirms the requirement with the blood bank, and the donor walks in with an ID.</p>
+            <p>The requester reveals the contact safely, confirms the requirement with the blood bank, and the donor walks
+            in with an ID. Afterwards the family marks the request fulfilled — which keeps the board honest for the next one.</p>
           </article>
         </div>
       </div>
@@ -255,9 +238,9 @@
           <span class="kicker" style="display:inline-flex;align-items:center;gap:.45rem;font-size:.78rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--red-700)">Privacy by default</span>
           <h2 style="margin:.5rem 0">Your number is never on public display</h2>
           <p class="muted" style="max-width:52ch">
-            Donor phone numbers stay masked. A requester has to tap “Show contact”, and every reveal is
-            rate-limited per browser to stop scraping and spam. Read the full
-            <a href="privacy.html">privacy policy</a> to see exactly what is stored.
+            A donor’s phone number never appears on any public page. It is revealed only when a requester actively taps
+            “Show contact”, and every browser is rate-limited to discourage scraping, spam and harassment. The full
+            <a href="privacy.html">privacy policy</a> explains exactly what we store — and what we never store.
           </p>
           <div class="hero-actions">
             <a class="btn btn-ghost" href="privacy.html">Read the policy</a>
@@ -269,7 +252,8 @@
             <svg viewBox="0 0 24 24" style="width:32px;height:32px"><path d="M12 20s-7.4-4.4-7.4-9.3A4.2 4.2 0 0 1 12 8.2a4.2 4.2 0 0 1 7.4 2.5C19.4 15.6 12 20 12 20Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
           </div>
           <h3>One donation can save up to three lives</h3>
-          <p class="muted small" style="max-width:38ch;margin:.5rem auto 1rem">It takes about ten minutes of your day and roughly 450 ml of blood — your body replaces the plasma within 24 hours.</p>
+          <p class="muted small" style="max-width:38ch;margin:.5rem auto 1rem">One whole-blood donation separates into red cells, plasma and platelets — up to three
+            patients helped by a single ten-minute visit. Your body replaces the fluid within a day; someone else keeps a lifetime.</p>
           <a class="btn btn-primary" href="register.html">Register as a donor</a>
         </div>
       </div>
