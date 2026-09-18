@@ -219,6 +219,7 @@ function showSuccess(d) {
       </div>
       <div class="success-actions">
         <button class="btn btn-primary" id="btnShareProfile">${icon('share')} Share my profile</button>
+        <a class="btn btn-ghost" href="my-donor.html">${icon('user')} Edit my profile anytime</a>
         <a class="btn btn-ghost" href="donors.html?group=${encodeURIComponent(d.bloodGroup)}">See the directory</a>
       </div>
       <p class="muted small">${isLive() ? 'Saved to the shared cloud database.' : 'Saved on this device (offline mode) — it will sync when Firebase is reachable.'}</p>
@@ -233,7 +234,7 @@ function showSuccess(d) {
 
 /* ------------------------------------------ my-donor page */
 export async function initMyDonor() {
-  bootUI('donors');
+  bootUI('mydonor');
   const host = document.getElementById('myDonorHost');
   if (!host) return;
   const rows = await listDonors();

@@ -69,6 +69,7 @@ export function mountShell(active = 'home') {
       </a>
       <nav class="nav desktop" aria-label="Main navigation">${navLinks}</nav>
       <div class="header-actions">
+        <a class="icon-btn" href="my-donor.html" aria-label="My donor profile" title="My donor profile">${icon('user')}</a>
         <button class="icon-btn" id="btnNotify" aria-pressed="false" aria-label="Turn on emergency alerts">
           ${icon('bell')}<span class="dot" hidden></span>
         </button>
@@ -133,7 +134,7 @@ export function mountShell(active = 'home') {
     <a href="donors.html" class="bb-item ${active === 'donors' ? 'is-active' : ''}">${icon('search')}<span>Find</span></a>
     <a href="emergency.html" class="bb-item bb-urgent" aria-label="Post an emergency blood request">${icon('siren')}<span>Emergency</span></a>
     <a href="register.html" class="bb-item ${active === 'register' ? 'is-active' : ''}">${icon('user')}<span>Register</span></a>
-    <a href="about.html" class="bb-item ${active === 'about' ? 'is-active' : ''}">${icon('info')}<span>About</span></a>
+    <a href="my-donor.html" class="bb-item ${active === 'mydonor' ? 'is-active' : ''}">${icon('user')}<span>Profile</span></a>
   </nav>
 
   <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
