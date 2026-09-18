@@ -21,7 +21,7 @@ export const FIREBASE_CONFIG = {
    your UID with a copy button. Paste it here, commit, redeploy.
    --------------------------------------------------------------- */
 export const ADMIN_UIDS = [
-  // 'PASTE-YOUR-UID-HERE'
+  'mYIFf0m0p7TLwo5pKiSkZxU2CmN2'
 ];
 
 /* Deploy the site to its real address and update these three, so
