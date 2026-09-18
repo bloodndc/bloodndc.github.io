@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>You are offline — One Drop</title>
+  <meta name="description" content="One Drop works offline once installed, but live requests need a connection.">
+  <meta name="author" content="Foysal Mahmud — Notre Dame College Batch 27, Group 11">
+  <meta name="theme-color" content="#C8102E">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://onedropndc.github.io/offline.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="One Drop — A Drop of Life">
+  <meta property="og:title" content="You are offline — One Drop">
+  <meta property="og:description" content="One Drop works offline once installed, but live requests need a connection.">
+  <meta property="og:image" content="assets/icons/icon-512.png">
+  <meta property="og:url" content="https://onedropndc.github.io/offline.html">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="You are offline — One Drop">
+  <meta name="twitter:description" content="One Drop works offline once installed, but live requests need a connection.">
+  <meta name="twitter:image" content="assets/icons/icon-512.png">
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="One Drop">
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+  <link rel="stylesheet" href="assets/css/main.css">
+
+  <meta name="robots" content="noindex">
+  <style>
+    .offline-wrap { min-height: 70vh; display: grid; place-items: center; text-align: center; padding: 2rem 1rem; }
+    .offline-card { max-width: 460px; }
+    .offline-mark { width: 74px; height: 74px; margin: 0 auto 1rem; border-radius: 24px; display: grid; place-items: center;
+      background: var(--red-50); color: var(--red); }
+  </style>
+</head>
+<body>
+  <main id="main">
+    <div class="offline-wrap">
+      <div class="offline-card">
+        <div class="offline-mark">
+          <svg viewBox="0 0 24 24" style="width:38px;height:38px"><path d="M3 9.5a14 14 0 0 1 18 0M6.5 13a9 9 0 0 1 11 0M10 16.4a4 4 0 0 1 4 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="19.4" r="1.3" fill="currentColor"/><path d="m3 3 18 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </div>
+        <h1 style="font-size:1.9rem">You are offline</h1>
+        <p class="muted" style="margin:.6rem 0 1.4rem">
+          One Drop itself still works — this page came from your device’s cache. Live donor data and new emergency
+          requests need a connection.
+        </p>
+        <div style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="location.reload()">Try again</button>
+          <a class="btn btn-ghost" href="index.html">Open home</a>
+        </div>
+        <p class="muted small" style="margin-top:1.4rem">For a life-threatening emergency, call <strong>999</strong> or the hospital blood bank directly.</p>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { bootUI } from './assets/js/app.js';
+    bootUI('home');
+    window.addEventListener('online', () => location.reload());
+  </script>
+</body>
+</html>

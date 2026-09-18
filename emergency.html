@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Emergency Blood Requests — One Drop</title>
+  <meta name="description" content="Post an emergency blood request with the patient's blood group, hospital and deadline, or browse live requests and offer to donate.">
+  <meta name="author" content="Foysal Mahmud — Notre Dame College Batch 27, Group 11">
+  <meta name="theme-color" content="#C8102E">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://onedropndc.github.io/emergency.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="One Drop — A Drop of Life">
+  <meta property="og:title" content="Emergency Blood Requests — One Drop">
+  <meta property="og:description" content="Post an emergency blood request with the patient's blood group, hospital and deadline, or browse live requests and offer to donate.">
+  <meta property="og:image" content="assets/icons/icon-512.png">
+  <meta property="og:url" content="https://onedropndc.github.io/emergency.html">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Emergency Blood Requests — One Drop">
+  <meta name="twitter:description" content="Post an emergency blood request with the patient's blood group, hospital and deadline, or browse live requests and offer to donate.">
+  <meta name="twitter:image" content="assets/icons/icon-512.png">
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="One Drop">
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+  <link rel="stylesheet" href="assets/css/main.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SpecialAnnouncement",
+    "name": "Emergency blood requests",
+    "category": "https://www.wikidata.org/wiki/Q10856958",
+    "text": "Live board of emergency blood requests posted by families and hospital volunteers.",
+    "spatialCoverage": "Bangladesh"
+  }
+  </script>
+</head>
+<body>
+  <main id="main">
+    <section class="page-hero" style="background:linear-gradient(180deg,#FFF7F8,var(--paper))">
+      <div class="wrap">
+        <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a> <span>/</span> <span>Emergency</span></nav>
+        <h1>Emergency blood requests</h1>
+        <p>Post a request and every volunteer with alerts turned on is notified. Donors can be sorted by distance from the hospital within seconds.</p>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:1.6rem">
+      <div class="wrap form-layout">
+
+        <div>
+          <div class="section-head" style="margin-bottom:1rem">
+            <span class="kicker">Live board</span>
+            <h2 style="font-size:1.5rem">Active requests</h2>
+          </div>
+          <div class="req-grid" id="requestFeed" aria-live="polite"></div>
+        </div>
+
+        <aside>
+          <div class="form-card" id="postForm">
+            <h2 style="font-size:1.35rem;margin-bottom:.4rem">Post a request</h2>
+            <p class="muted small" style="margin-bottom:1.2rem">Fill this in from the hospital if you can — accurate details get donors through the door faster.</p>
+
+            <form id="requestForm" novalidate>
+              <div class="field">
+                <label for="r-patient">Patient name &amp; age *</label>
+                <input id="r-patient" class="input" name="patient" type="text" placeholder="e.g. Md. Abdul Malek (58)"
+                       data-live-error='{"required":true,"min":3,"requiredMsg":"Who needs the blood?"}' required>
+              </div>
+
+              <div class="form-grid" style="margin-top:1rem">
+                <div class="field">
+                  <label for="r-group">Blood group needed *</label>
+                  <select id="r-group" class="input" name="bloodGroup" data-live-error='{"required":true,"requiredMsg":"Select a blood group"}' required></select>
+                </div>
+                <div class="field">
+                  <label for="r-units">Units needed *</label>
+                  <input id="r-units" class="input" name="units" type="number" min="1" max="10" value="1" inputmode="numeric" required>
+                </div>
+              </div>
+
+              <div class="field" style="margin-top:1rem">
+                <label for="r-hospital">Hospital / blood bank *</label>
+                <input id="r-hospital" class="input" name="hospital" type="text" placeholder="e.g. Dhaka Medical College Hospital"
+                       data-live-error='{"required":true,"min":3,"requiredMsg":"Which hospital?"}' required>
+              </div>
+
+              <div class="form-grid" style="margin-top:1rem">
+                <div class="field">
+                  <label for="r-district">District *</label>
+                  <select id="r-district" class="input" name="district" data-live-error='{"required":true,"requiredMsg":"Select a district"}' required></select>
+                </div>
+                <div class="field">
+                  <label for="r-area">Area</label>
+                  <input id="r-area" class="input" name="area" type="text" placeholder="e.g. Shahbagh">
+                </div>
+              </div>
+
+              <div class="form-grid" style="margin-top:1rem">
+                <div class="field">
+                  <label for="r-contact">Attendant name *</label>
+                  <input id="r-contact" class="input" name="contactName" type="text" placeholder="Who should donors ask for?"
+                         data-live-error='{"required":true,"min":2,"requiredMsg":"Donors need a name to ask for"}' required>
+                </div>
+                <div class="field">
+                  <label for="r-phone">Attendant mobile *</label>
+                  <input id="r-phone" class="input" name="phone" type="tel" inputmode="tel" placeholder="01712345678"
+                         data-live-error='{"required":true,"phone":true,"requiredMsg":"A contact number is required"}' required>
+                </div>
+              </div>
+
+              <div class="form-grid" style="margin-top:1rem">
+                <div class="field">
+                  <label for="r-by">Needed by *</label>
+                  <input id="r-by" class="input" name="neededBy" type="datetime-local"
+                         data-live-error='{"required":true,"future":true,"requiredMsg":"When is it needed?"}' required>
+                </div>
+                <div class="field">
+                  <label for="r-urgency">Urgency</label>
+                  <select id="r-urgency" class="input" name="urgency">
+                    <option value="urgent">Urgent — within 24 hours</option>
+                    <option value="critical">Critical — within hours</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field" style="margin-top:1rem">
+                <label for="r-note">Additional note</label>
+                <textarea id="r-note" class="input" name="note" rows="3" maxlength="300" placeholder="e.g. Emergency surgery at 6 AM. Donors should report to the blood bank on the 2nd floor with an ID."></textarea>
+              </div>
+
+              <button class="btn btn-primary" type="submit" style="width:100%;justify-content:center;margin-top:1.2rem">Post emergency request</button>
+              <p class="muted small" style="margin-top:.6rem">
+                False requests waste donors’ time and put real emergencies at risk. Moderators can remove any post.
+              </p>
+            </form>
+          </div>
+
+          <div class="callout" style="margin-top:1rem">
+            <p class="small"><strong>While you wait:</strong> call the hospital blood bank directly, ask relatives for replacement
+            donors, and share this request on WhatsApp groups — most matches happen through a forwarded message.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { bootUI, initAlerts } from './assets/js/app.js';
+    import { renderRequestFeed, initRequestForm } from './assets/js/emergency.js';
+    bootUI('emergency');
+    initAlerts();
+    renderRequestFeed(document.getElementById('requestFeed'), { compact: false });
+    initRequestForm();
+    const reqId = new URLSearchParams(location.search).get('req');
+    if (reqId) document.getElementById('postForm').scrollIntoView({ block: 'nearest' });
+  </script>
+</body>
+</html>

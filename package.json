@@ -1,0 +1,16 @@
+{
+  "name": "lifeline-blood-donor-community",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lifeline — a blood donor community website. Idea & initiative: Notre Dame College Batch 27, Group 11. Developed by Foysal Mahmud.",
+  "scripts": {
+    "start": "python3 -m http.server 8080 --bind 0.0.0.0",
+    "test": "node tests/e2e.js && node tests/admin.e2e.js",
+    "test:smoke": "node tests/e2e.js",
+    "test:admin": "node tests/admin.e2e.js",
+    "icons": "python3 tools/make_icons.py"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.63.0"
+  }
+}

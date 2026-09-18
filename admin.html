@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Moderator Dashboard — One Drop</title>
+  <meta name="description" content="Restricted area for One Drop moderators: verify donors, manage emergency requests and publish announcements.">
+  <meta name="author" content="Foysal Mahmud — Notre Dame College Batch 27, Group 11">
+  <meta name="theme-color" content="#C8102E">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://onedropndc.github.io/admin.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="One Drop — A Drop of Life">
+  <meta property="og:title" content="Moderator Dashboard — One Drop">
+  <meta property="og:description" content="Restricted area for One Drop moderators: verify donors, manage emergency requests and publish announcements.">
+  <meta property="og:image" content="assets/icons/icon-512.png">
+  <meta property="og:url" content="https://onedropndc.github.io/admin.html">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Moderator Dashboard — One Drop">
+  <meta name="twitter:description" content="Restricted area for One Drop moderators: verify donors, manage emergency requests and publish announcements.">
+  <meta name="twitter:image" content="assets/icons/icon-512.png">
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="One Drop">
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+  <link rel="stylesheet" href="assets/css/main.css">
+
+  <meta name="robots" content="noindex, nofollow">
+</head>
+<body>
+  <main id="main">
+    <section class="page-hero">
+      <div class="wrap">
+        <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a> <span>/</span> <span>Moderator</span></nav>
+        <h1>Moderator dashboard</h1>
+        <p>Restricted to UIDs listed in <code>assets/js/config.js</code>. Verify donors, manage emergency requests and publish announcements.</p>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:1.6rem">
+      <div class="wrap">
+
+        <div class="gate panel" id="adminGate" hidden>
+          <div class="gate-mark">
+            <svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path d="M12 3.2 19 6v5.5c0 4.3-2.9 7.6-7 9.3-4.1-1.7-7-5-7-9.3V6l7-2.8Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          </div>
+          <h2 style="font-size:1.4rem">Moderator access</h2>
+          <p class="muted small">This dashboard opens only for UIDs listed in <code>ADMIN_UIDS</code>
+            (<code>assets/js/config.js</code>).</p>
+
+          <div class="gate-uidbox">
+            <span class="muted small">Your session UID (identifies <em>this browser</em> — created automatically, no account needed):</span>
+            <div class="gate-uid">
+              <code id="myUid">—</code>
+              <button class="btn btn-primary btn-xs" type="button">Copy UID</button>
+            </div>
+          </div>
+
+          <ol class="gate-steps">
+            <li>Press <strong>Copy UID</strong> above.</li>
+            <li>In the repository, open <code>assets/js/config.js</code> and paste it inside the
+                <code>ADMIN_UIDS</code> array — e.g. <code>ADMIN_UIDS = ['PASTE-HERE']</code>.</li>
+            <li>Commit &amp; redeploy, then press <strong>Reload</strong> below.</li>
+          </ol>
+
+          <details class="faq-item" style="margin-bottom:1rem">
+            <summary>What is a UID and where do I get one?</summary>
+            <div class="faq-body">
+              When anyone opens this site, Firebase Authentication signs them in <em>anonymously</em>
+              (no email, no password) and assigns a random UID. That UID is what you see in the box above —
+              it appears automatically once the site can reach Firebase.
+              <br><br>
+              If the box shows a dash, two things must be done once in the
+              <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer">Firebase console</a>:
+              (1) <strong>Authentication → Sign-in method → Anonymous → Enable</strong>, and
+              (2) publish <code>firestore.rules</code> under <strong>Firestore → Rules</strong>.
+              Then reload this page and your UID will appear.
+            </div>
+          </details>
+
+          <p class="muted small" id="gateNote" style="margin-bottom:1rem"></p>
+          <button class="btn btn-ghost btn-sm" type="button" onclick="location.reload()">Reload</button>
+        </div>
+
+        <div id="adminPanel" hidden>
+          <div class="admin-tabs" role="tablist">
+            <button data-tab="overview" class="is-active" role="tab">Overview</button>
+            <button data-tab="donors" role="tab">Donors</button>
+            <button data-tab="requests" role="tab">Requests</button>
+            <button data-tab="announcements" role="tab">Announcements</button>
+            <button data-tab="messages" role="tab">Messages</button>
+          </div>
+
+          <div data-panel="overview" id="overviewHost"></div>
+
+          <div data-panel="donors" id="adminDonors" hidden></div>
+
+          <div data-panel="requests" id="adminRequests" hidden></div>
+
+          <div data-panel="announcements" hidden>
+            <div class="form-card" style="max-width:640px">
+              <h3 style="margin-bottom:.8rem">Publish an announcement</h3>
+              <p class="muted small" style="margin-bottom:1rem">Shown at the top of the home page for every visitor until you hide it.</p>
+              <form id="announceForm">
+                <div class="field">
+                  <label for="a-title">Title</label>
+                  <input id="a-title" class="input" name="title" type="text" maxlength="80" placeholder="e.g. Blood donation camp on Friday" required>
+                </div>
+                <div class="field" style="margin-top:.8rem">
+                  <label for="a-body">Message</label>
+                  <textarea id="a-body" class="input" name="body" rows="3" maxlength="300" placeholder="Short and actionable works best." required></textarea>
+                </div>
+                <div class="field" style="margin-top:.8rem">
+                  <label for="a-level">Style</label>
+                  <select id="a-level" class="input" name="level">
+                    <option value="info">Information (blue)</option>
+                    <option value="alert">Alert (red)</option>
+                  </select>
+                </div>
+                <button class="btn btn-primary btn-sm" type="submit" style="margin-top:1rem">Publish</button>
+              </form>
+            </div>
+            <div id="announceList" style="margin-top:1.4rem"></div>
+          </div>
+
+          <div data-panel="messages" id="adminMessages" hidden></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initAdmin } from './assets/js/admin.js';
+    initAdmin();
+  </script>
+</body>
+</html>

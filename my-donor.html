@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>My Donor Profile — One Drop</title>
+  <meta name="description" content="Manage your One Drop donor listing: update availability, log a donation and share your profile.">
+  <meta name="author" content="Foysal Mahmud — Notre Dame College Batch 27, Group 11">
+  <meta name="theme-color" content="#C8102E">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://onedropndc.github.io/my-donor.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="One Drop — A Drop of Life">
+  <meta property="og:title" content="My Donor Profile — One Drop">
+  <meta property="og:description" content="Manage your One Drop donor listing: update availability, log a donation and share your profile.">
+  <meta property="og:image" content="assets/icons/icon-512.png">
+  <meta property="og:url" content="https://onedropndc.github.io/my-donor.html">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="My Donor Profile — One Drop">
+  <meta name="twitter:description" content="Manage your One Drop donor listing: update availability, log a donation and share your profile.">
+  <meta name="twitter:image" content="assets/icons/icon-512.png">
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="One Drop">
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+  <link rel="stylesheet" href="assets/css/main.css">
+
+  <meta name="robots" content="noindex">
+</head>
+<body>
+  <main id="main">
+    <section class="page-hero">
+      <div class="wrap">
+        <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a> <span>/</span> <span>My profile</span></nav>
+        <h1>My donor profile</h1>
+        <p>Manage your listing, log a donation, or take yourself off the list. Your profile is tied to this device.</p>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:1.6rem">
+      <div class="wrap">
+        <div id="myDonorHost"></div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initMyDonor } from './assets/js/register.js';
+    initMyDonor();
+  </script>
+</body>
+</html>

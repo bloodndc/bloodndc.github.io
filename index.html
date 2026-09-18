@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>One Drop — Find Blood Donors Near You | NDC Batch 27 Group 11</title>
+  <meta name="description" content="One Drop is a free, volunteer-run blood donor community. Search verified donors by blood group and location, post emergency blood requests, and get alerts the moment someone nearby needs help.">
+  <meta name="keywords" content="blood donor, blood donation Bangladesh, emergency blood, O negative donor, Dhaka blood bank, One Drop, Notre Dame College Batch 27">
+  <meta name="author" content="Foysal Mahmud — Notre Dame College Batch 27, Group 11">
+  <meta name="theme-color" content="#C8102E">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://onedropndc.github.io/">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="One Drop — A Drop of Life">
+  <meta property="og:title" content="One Drop — Find Blood Donors Near You">
+  <meta property="og:description" content="Search verified donors by blood group, post an emergency request, and get alerted instantly. Built by students of Notre Dame College, Batch 27.">
+  <meta property="og:image" content="assets/img/logo-full.png">
+  <meta property="og:url" content="https://onedropndc.github.io/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="One Drop — Find Blood Donors Near You">
+  <meta name="twitter:description" content="A free blood donor community built by Notre Dame College Batch 27, Group 11.">
+  <meta name="twitter:image" content="assets/img/logo-full.png">
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="One Drop">
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+  <link rel="stylesheet" href="assets/css/main.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "NGO",
+    "name": "One Drop — A Drop of Life",
+    "description": "A volunteer-run blood donor network that connects people who need blood with verified donors nearby.",
+    "url": "https://onedropndc.github.io/",
+    "founder": { "@type": "Organization", "name": "Notre Dame College, Batch 27 — Group 11" },
+    "developer": { "@type": "Person", "name": "Foysal Mahmud", "url": "https://foysalcyber.github.io/" },
+    "areaServed": "BD",
+    "knowsAbout": ["Blood donation", "Emergency blood requests", "Volunteer coordination"]
+  }
+  </script>
+</head>
+<body>
+  <main id="main">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="float-drops" aria-hidden="true">
+        <i style="--x:6%;  --s:16px; --d:11s; --delay:0s"></i>
+        <i style="--x:18%; --s:10px; --d:14s; --delay:2.2s"></i>
+        <i style="--x:34%; --s:20px; --d:12s; --delay:4.6s"></i>
+        <i style="--x:52%; --s:12px; --d:15s; --delay:1.4s"></i>
+        <i style="--x:68%; --s:18px; --d:13s; --delay:6s"></i>
+        <i style="--x:81%; --s:11px; --d:16s; --delay:3.1s"></i>
+        <i style="--x:92%; --s:15px; --d:12.5s; --delay:7.4s"></i>
+      </div>
+      <div class="hero-ecg" aria-hidden="true">
+        <svg viewBox="0 0 1200 46" preserveAspectRatio="none">
+          <path class="trace" d="M0 24h180l20-15 15 32 17-25 13 8h160l22-14 15 28 17-22 13 6h180l20-15 15 32 17-25 13 8h180l22-14 15 28 17-22 13 6h140"/>
+        </svg>
+      </div>
+      <div class="wrap hero-grid">
+        <div>
+          <span class="eyebrow"><span class="beat"></span> Student-run · Free forever · Bangladesh</span>
+          <h1>Every minute matters when someone needs <span class="accent">blood</span>.</h1>
+          <p class="hero-sub">
+            One Drop connects people in urgent need with verified voluntary donors nearby.
+            Search by blood group, filter by district, sort by distance — and reach a donor
+            in the time it takes to make one phone call.
+          </p>
+
+          <form class="quick-search" id="quickSearch" role="search" aria-label="Find a donor">
+            <label class="sr-only" for="quickSearchInput" style="position:absolute;left:-9999px">Search donors</label>
+            <input id="quickSearchInput" class="input" type="search" placeholder="Search by name, area or hospital…" autocomplete="off">
+            <select class="input" name="group" aria-label="Blood group">
+              <option value="ALL">Any group</option>
+              <option>A+</option><option>A-</option><option>B+</option><option>B-</option>
+              <option>AB+</option><option>AB-</option><option>O+</option><option>O-</option>
+            </select>
+            <button class="btn btn-primary" type="submit">Find donor</button>
+          </form>
+
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="emergency.html">Post an emergency request</a>
+            <a class="btn btn-ghost" href="register.html">Become a donor</a>
+            <button class="btn btn-ghost" data-install hidden>Install app</button>
+          </div>
+
+          <div class="hero-trust">
+            <span><svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path d="M12 3.2 19 6v5.5c0 4.3-2.9 7.6-7 9.3-4.1-1.7-7-5-7-9.3V6l7-2.8Z" fill="none" stroke="currentColor" stroke-width="1.8"/></svg> Phone numbers stay hidden</span>
+            <span><svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path d="m5 12.6 4.4 4.4L19 7.4" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/></svg> No sign-up needed to search</span>
+            <span><svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path d="M12 6.5v11M6.5 12h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Works offline once installed</span>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <div class="drop-stage">
+            <span class="ring"></span><span class="ring r2"></span>
+            <span class="pulse-ring"></span><span class="pulse-ring p2"></span>
+            <div class="drop-core">
+              <svg viewBox="0 0 24 24"><path d="M12 2.2c.3 0 .6.1.8.4 1.6 2 6.2 7.1 6.2 11.2A7 7 0 0 1 12 21a7 7 0 0 1-7-7.2c0-4.1 4.6-9.2 6.2-11.2.2-.3.5-.4.8-.4Z" fill="currentColor"/></svg>
+            </div>
+            <span class="orbit o1">O−</span><span class="orbit o2">A+</span>
+            <span class="orbit o3">B+</span><span class="orbit o4">AB+</span><span class="orbit o5">O+</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="ticker" id="groupTicker" aria-label="Available donors by blood group"></div>
+
+    <div class="ecg" aria-hidden="true">
+      <svg viewBox="0 0 1200 46" preserveAspectRatio="none">
+        <path class="trace" d="M0 24h150l18-16 14 34 16-26 12 8h120l20-14 14 30 16-24 12 6h160l18-16 14 34 16-26 12 8h150l20-14 14 30 16-24 12 6h160"/>
+      </svg>
+    </div>
+
+    <!-- ANNOUNCEMENTS -->
+    <div class="wrap" id="announceHost"></div>
+
+    <!-- LIVE EMERGENCY -->
+    <section class="section" id="live">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <span class="kicker">Live emergency board</span>
+          <h2>People waiting for blood right now</h2>
+          <p>These requests are posted by families and hospital volunteers. If you match, one call can save a life.</p>
+        </div>
+        <div class="req-grid" id="homeRequests"></div>
+        <div style="margin-top:1.4rem" data-reveal>
+          <a class="btn btn-ghost" href="emergency.html">Open the full emergency board →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="section alt" id="stats">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <span class="kicker">The network today</span>
+          <h2>A living directory, not a static list</h2>
+          <p>Every number below updates the moment a donor registers or marks themselves available.</p>
+        </div>
+        <div id="statsHost"></div>
+      </div>
+    </section>
+
+    <!-- BLOOD GROUP PICKER -->
+    <section class="section" id="groups">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <span class="kicker">Jump straight in</span>
+          <h2>Which blood group do you need?</h2>
+          <p>Tap a group to open the donor directory already filtered for it.</p>
+        </div>
+        <div class="group-grid" id="quickPool">
+          <button class="group-tile" data-quick-group="A+" data-reveal><span class="gt-drop" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.2c.3 0 .6.1.8.4 1.6 2 6.2 7.1 6.2 11.2A7 7 0 0 1 12 21a7 7 0 0 1-7-7.2c0-4.1 4.6-9.2 6.2-11.2.2-.3.5-.4.8-.4Z" fill="currentColor"/></svg></span><span class="gt-type">A+</span><span class="gt-count"><span data-pool="A+">0</span> available</span><span class="gt-go">Find donors →</span></button>
+          <button class="group-tile" data-quick-group="A-" data-reveal><span class="gt-drop" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.2c.3 0 .6.1.8.4 1.6 2 6.2 7.1 6.2 11.2A7 7 0 0 1 12 21a7 7 0 0 1-7-7.2c0-4.1 4.6-9.2 6.2-11.2.2-.3.5-.4.8-.4Z" fill="currentColor"/></svg></span><span class="gt-type">A−</span><span class="gt-count"><span data-pool="A-">0</span> available</span><span class="gt-go">Find donors →</span></button>
+          <button class="group-tile" data-quick-group="B+" data-reveal><span class="gt-drop" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.2c.3 0 .6.1.8.4 1.6 2 6.2 7.1 6.2 11.2A7 7 0 0 1 12 21a7 7 0 0 1-7-7.2c0-4.1 4.6-9.2 6.2-11.2.2-.3.5-.4.8-.4Z" fill="currentColor"/></svg></span><span class="gt-type">B+</span><span class="gt-count"><span data-pool="B+">0</span> available</span><span class="gt-go">Find donors →</span></button>
+          <button class="group-tile" data-quick-group="B-" data-reveal><span class="gt-drop" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.2c.3 0 .6.1.8.4 1.6 2 6.2 7.1 6.2 11.2A7 7 0 0 1 12 21a7 7 0 0 1-7-7.2c0-4.1 4.6-9.2 6.2-11.2.2-.3.5-.4.8-.4Z" fill="currentColor"/></svg></span><span class="gt-type">B−</span><span class="gt-count"><span data-pool="B-">0</span> available</span><span class="gt-go">Find donors →</span></button>
+          <button class="group-tile" data-quick-group="AB+" data-reveal><span class="gt-drop" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.2c.3 0 .6.1.8.4 1.6 2 6.2 7.1 6.2 11.2A7 7 0 0 1 12 21a7 7 0 0 1-7-7.2c0-4.1 4.6-9.2 6.2-11.2.2-.3.5-.4.8-.4Z" fill="currentColor"/></svg></span><span class="gt-type">AB+</span><span class="gt-count"><span data-pool="AB+">0</span> available</span><span class="gt-go">Find donors →</span></button>
+          <button class="group-tile" data-quick-group="AB-" data-reveal><span class="gt-drop" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.2c.3 0 .6.1.8.4 1.6 2 6.2 7.1 6.2 11.2A7 7 0 0 1 12 21a7 7 0 0 1-7-7.2c0-4.1 4.6-9.2 6.2-11.2.2-.3.5-.4.8-.4Z" fill="currentColor"/></svg></span><span class="gt-type">AB−</span><span class="gt-count"><span data-pool="AB-">0</span> available</span><span class="gt-go">Find donors →</span></button>
+          <button class="group-tile" data-quick-group="O+" data-reveal><span class="gt-drop" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.2c.3 0 .6.1.8.4 1.6 2 6.2 7.1 6.2 11.2A7 7 0 0 1 12 21a7 7 0 0 1-7-7.2c0-4.1 4.6-9.2 6.2-11.2.2-.3.5-.4.8-.4Z" fill="currentColor"/></svg></span><span class="gt-type">O+</span><span class="gt-count"><span data-pool="O+">0</span> available</span><span class="gt-go">Find donors →</span></button>
+          <button class="group-tile" data-quick-group="O-" data-reveal><span class="gt-drop" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.2c.3 0 .6.1.8.4 1.6 2 6.2 7.1 6.2 11.2A7 7 0 0 1 12 21a7 7 0 0 1-7-7.2c0-4.1 4.6-9.2 6.2-11.2.2-.3.5-.4.8-.4Z" fill="currentColor"/></svg></span><span class="gt-type">O−</span><span class="gt-count"><span data-pool="O-">0</span> available</span><span class="gt-go">Find donors →</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPATIBILITY -->
+    <section class="section alt" id="compatibility">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <span class="kicker">Know before you call</span>
+          <h2>Blood compatibility, in ten seconds</h2>
+          <p>In an emergency, doctors may use compatible groups rather than an exact match. This tool tells you which donors are worth calling first.</p>
+        </div>
+        <div class="panel" id="compatHost" data-reveal></div>
+      </div>
+    </section>
+
+    <!-- ELIGIBILITY CHECKER -->
+    <section class="section" id="eligibility">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <span class="kicker">Sixty-second self check</span>
+          <h2>Can I donate today?</h2>
+          <p>Pick your blood group and the date of your last donation — we will tell you instantly whether the 56-day cooling-off has passed.</p>
+        </div>
+        <div class="panel" id="eligibilityHost" data-reveal></div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section" id="how">
+      <div class="wrap">
+        <div class="section-head" data-reveal>
+          <span class="kicker">How it works</span>
+          <h2>Three steps between a request and a donor</h2>
+        </div>
+        <div class="steps">
+          <article class="step" data-reveal>
+            <div class="step-num">1</div>
+            <h3>Post the need</h3>
+            <p>A family member or hospital volunteer posts the patient’s blood group, hospital and deadline. It appears on the live board instantly.</p>
+          </article>
+          <article class="step" data-reveal>
+            <div class="step-num">2</div>
+            <h3>Donors get alerted</h3>
+            <p>Everyone who turned on emergency alerts is notified, and matching donors can be sorted by distance from the hospital.</p>
+          </article>
+          <article class="step" data-reveal>
+            <div class="step-num">3</div>
+            <h3>Confirm and donate</h3>
+            <p>The requester reveals the donor’s number, confirms the requirement with the blood bank, and the donor walks in with an ID.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRIVACY + CTA -->
+    <section class="section alt">
+      <div class="wrap split-2">
+        <div data-reveal>
+          <span class="kicker" style="display:inline-flex;align-items:center;gap:.45rem;font-size:.78rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--red-700)">Privacy by default</span>
+          <h2 style="margin:.5rem 0">Your number is never on public display</h2>
+          <p class="muted" style="max-width:52ch">
+            Donor phone numbers stay masked. A requester has to tap “Show contact”, and every reveal is
+            rate-limited per browser to stop scraping and spam. Read the full
+            <a href="privacy.html">privacy policy</a> to see exactly what is stored.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-ghost" href="privacy.html">Read the policy</a>
+            <a class="btn btn-ghost" href="faq.html">Donation FAQ</a>
+          </div>
+        </div>
+        <div class="panel" data-reveal style="text-align:center">
+          <div style="width:64px;height:64px;margin:0 auto .8rem;border-radius:20px;display:grid;place-items:center;background:var(--red-50);color:var(--red)">
+            <svg viewBox="0 0 24 24" style="width:32px;height:32px"><path d="M12 20s-7.4-4.4-7.4-9.3A4.2 4.2 0 0 1 12 8.2a4.2 4.2 0 0 1 7.4 2.5C19.4 15.6 12 20 12 20Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          </div>
+          <h3>One donation can save up to three lives</h3>
+          <p class="muted small" style="max-width:38ch;margin:.5rem auto 1rem">It takes about ten minutes of your day and roughly 450 ml of blood — your body replaces the plasma within 24 hours.</p>
+          <a class="btn btn-primary" href="register.html">Register as a donor</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { bootHome } from './assets/js/app.js';
+    import { initAlerts } from './assets/js/app.js';
+    bootHome().then(initAlerts);
+  </script>
+</body>
+</html>

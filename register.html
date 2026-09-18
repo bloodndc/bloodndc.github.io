@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Become a Blood Donor — One Drop</title>
+  <meta name="description" content="Register as a voluntary blood donor in under a minute. Your phone number stays hidden until a requester taps Show contact.">
+  <meta name="author" content="Foysal Mahmud — Notre Dame College Batch 27, Group 11">
+  <meta name="theme-color" content="#C8102E">
+  <meta name="color-scheme" content="light">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://onedropndc.github.io/register.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="One Drop — A Drop of Life">
+  <meta property="og:title" content="Become a Blood Donor — One Drop">
+  <meta property="og:description" content="Register as a voluntary blood donor in under a minute. Your phone number stays hidden until a requester taps Show contact.">
+  <meta property="og:image" content="assets/icons/icon-512.png">
+  <meta property="og:url" content="https://onedropndc.github.io/register.html">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Become a Blood Donor — One Drop">
+  <meta name="twitter:description" content="Register as a voluntary blood donor in under a minute. Your phone number stays hidden until a requester taps Show contact.">
+  <meta name="twitter:image" content="assets/icons/icon-512.png">
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="One Drop">
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+  <link rel="stylesheet" href="assets/css/main.css">
+
+</head>
+<body>
+  <main id="main">
+    <section class="page-hero">
+      <div class="wrap">
+        <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a> <span>/</span> <span>Become a donor</span></nav>
+        <h1 id="formTitle">Become a donor</h1>
+        <p id="formIntro">It takes under a minute. Your listing helps families find you the moment they are searching — and your phone number stays hidden until someone taps “Show contact”.</p>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:1.6rem">
+      <div class="wrap form-layout">
+
+        <div class="form-card">
+          <div class="profile-status hidden" id="profileStatus"></div>
+
+          <div class="form-progress" aria-hidden="true"><span id="formProgress"></span></div>
+          <p class="muted small" id="formProgressLabel" style="margin:-.6rem 0 1.2rem">0% complete</p>
+
+          <form id="donorForm" novalidate>
+            <div class="form-grid">
+              <div class="field">
+                <label for="f-name">Full name *</label>
+                <input id="f-name" class="input" name="name" type="text" autocomplete="name" placeholder="e.g. Tanvir Ahmed"
+                       data-rules='{"required":true,"name":true,"msg":"Please enter your full name"}' required>
+                <span class="hint">Shown publicly. Use the name on your national ID so hospitals can verify you.</span>
+              </div>
+
+              <div class="field">
+                <label for="f-phone">Mobile number *</label>
+                <input id="f-phone" class="input" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="01712345678"
+                       data-rules='{"required":true,"phone":true,"msg":"A mobile number is required"}' required>
+                <span class="hint">Hidden from the public list. Revealed one request at a time.</span>
+              </div>
+
+              <div class="field">
+                <label for="f-blood">Blood group *</label>
+                <select id="f-blood" class="input" name="bloodGroup" data-rules='{"required":true,"msg":"Select your blood group"}' required></select>
+                <span class="hint">Not sure? Any diagnostic centre can confirm it for a small fee.</span>
+              </div>
+
+              <div class="field">
+                <label for="f-district">District *</label>
+                <select id="f-district" class="input" name="district" data-rules='{"required":true,"msg":"Select your district"}' required></select>
+                <span class="hint">Used to estimate how far you are from a request.</span>
+              </div>
+
+              <div class="field">
+                <label for="f-area">Area / thana</label>
+                <input id="f-area" class="input" name="area" type="text" placeholder="e.g. Mirpur 10, Dhanmondi" autocomplete="address-level2">
+                <span class="hint">Optional, but it helps requesters judge travel time.</span>
+              </div>
+
+              <div class="field">
+                <label for="f-age">Age</label>
+                <input id="f-age" class="input" name="age" type="number" min="18" max="65" inputmode="numeric" placeholder="18 – 65"
+                       data-rules='{"age":true}'>
+                <span class="hint">Voluntary donors in Bangladesh must be 18–65.</span>
+              </div>
+
+              <div class="field">
+                <label for="f-last">Last donation date</label>
+                <input id="f-last" class="input" name="lastDonation" type="date" data-rules='{"date":true}'>
+                <span class="hint">We pause your listing for 56 days after a whole-blood donation.</span>
+              </div>
+
+              <div class="field">
+                <label for="f-donations">Total donations so far</label>
+                <input id="f-donations" class="input" name="donations" type="number" min="0" max="200" inputmode="numeric" placeholder="0" value="0">
+                <span class="hint">Shown on your card — it reassures nervous patients’ families.</span>
+              </div>
+
+              <div class="field full">
+                <label for="f-note">A note for requesters</label>
+                <textarea id="f-note" class="input" name="note" rows="3" maxlength="240" placeholder="e.g. Available after 6 PM on weekdays. Can reach any hospital inside Dhaka within an hour."></textarea>
+                <span class="hint">Optional, max 240 characters. Never write your phone number here.</span>
+              </div>
+
+              <div class="field full">
+                <span class="hint" style="margin-bottom:.3rem">Precise location (optional)</span>
+                <button type="button" class="btn btn-ghost btn-sm" id="btnUseLocation">
+                  <svg viewBox="0 0 24 24" class="ico" aria-hidden="true"><path d="M12 21s6.6-6.1 6.6-11A6.6 6.6 0 0 0 5.4 10c0 4.9 6.6 11 6.6 11Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>
+                  Use my current location
+                </button>
+                <div id="locationOut" style="margin-top:.5rem"></div>
+              </div>
+
+              <div class="field full">
+                <label class="switch"><input type="checkbox" name="available" checked> I am available to donate right now</label>
+              </div>
+
+              <div class="field full">
+                <label class="consent">
+                  <input type="checkbox" name="consent">
+                  <p>I confirm the details above are true, I am medically fit to donate, and I consent to my name, blood group and
+                  general location being listed publicly. I understand my phone number is only revealed when a requester explicitly asks for it.
+                  <a href="privacy.html">Privacy policy</a></p>
+                </label>
+              </div>
+
+              <div class="field full">
+                <button class="btn btn-primary" type="submit" style="width:100%;justify-content:center">Publish my donor profile</button>
+                <p class="muted small" style="margin-top:.6rem">No password, no email — you can edit or remove this listing any time from this device.</p>
+              </div>
+            </div>
+          </form>
+
+          <div class="success-panel" id="successPanel" hidden></div>
+        </div>
+
+        <aside class="panel" aria-label="Before you register">
+          <h3 style="margin-bottom:.6rem">Before you register</h3>
+          <ul class="muted small" style="padding-left:1.1rem;display:grid;gap:.5rem">
+            <li>You must weigh at least 50 kg and be 18–65 years old.</li>
+            <li>Wait 56 days between whole-blood donations.</li>
+            <li>Skip donation if you have a fever, are on antibiotics, or donated blood in the last 8 weeks.</li>
+            <li>Eat normally and drink plenty of water beforehand.</li>
+            <li>Bring your national ID or birth certificate to the blood bank.</li>
+          </ul>
+          <div class="callout ok" style="margin-top:1rem">
+            <p class="small"><strong>Why it matters:</strong> Bangladesh needs roughly 2.4 million units of blood a year, and voluntary donors cover only a part of that.</p>
+          </div>
+          <div style="margin-top:1rem" id="badgePreview" aria-live="polite"></div>
+          <p class="muted small">Your badge preview appears here once you pick a blood group.</p>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initRegister } from './assets/js/register.js';
+    initRegister();
+  </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /my-donor.html
+Disallow: /offline.html
+
+Sitemap: https://onedropndc.github.io/sitemap.xml

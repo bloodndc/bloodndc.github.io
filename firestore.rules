@@ -1,0 +1,84 @@
+rules_version = '2';
+
+// Firebase console → Firestore Database → Rules → paste this whole file → Publish.
+// Anyone can READ the directory. Only the anonymous session that created a record
+// can change it. Moderation actions (verify / suspend) are performed from the
+// moderator dashboard by the same rule set — see README for the stricter variant.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Phone numbers must look like a real Bangladeshi mobile number.
+    function validPhone(v) {
+      return v is string && v.matches('^(\\+880|0)1[3-9][0-9]{8}$');
+    }
+
+    function validGroup(v) {
+      return v in ['A+','A-','B+','B-','AB+','AB-','O+','O-'];
+    }
+
+    match /donors/{donorId} {
+      allow read: if true;
+
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 1
+        && request.resource.data.name.size() < 80
+        && validPhone(request.resource.data.phone)
+        && validGroup(request.resource.data.bloodGroup);
+
+      allow update, delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    match /requests/{requestId} {
+      allow read: if true;
+
+      allow create: if isSignedIn()
+        && validPhone(request.resource.data.phone)
+        && validGroup(request.resource.data.bloodGroup);
+
+      allow update, delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // Visitors may write a message; only moderators read them.
+    match /messages/{messageId} {
+      allow read: if isSignedIn();
+      allow create: if request.resource.data.message is string
+                    && request.resource.data.message.size() < 1000;
+      allow update, delete: if isSignedIn();
+    }
+
+    // Announcements and moderation actions.
+    // Tighten this by replacing isSignedIn() with an admin-UID check, e.g.:
+    //   request.auth.uid in ['ADMIN_UID_1', 'ADMIN_UID_2']
+    match /announcements/{id} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Daily counters, best effort.
+    match /analytics/{day} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    match /audit/{id} {
+      allow read, write: if isSignedIn();
+    }
+
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // Everything else: closed.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
