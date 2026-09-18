@@ -15,11 +15,15 @@ export const FIREBASE_CONFIG = {
 };
 
 /* ---------------------------------------------------------------
-   ADMIN ACCESS
-   Moderators sign in at /admin.html with an email + password account
-   created in the Firebase console (Authentication → Users → Add user).
-   No secrets live in this file.
+   ADMIN ACCESS — two roles
+   OWNER (full control): the emails in OWNER_EMAILS below. Keep this list
+   identical to isOwner() in firestore.rules.
+   MODERATOR (limited): any other Email/Password account created in the
+   Firebase console (Authentication → Users → Add user). Moderators can
+   approve requests, verify donors, read the inbox and publish notices —
+   deletes and edits are blocked server-side by the rules.
    --------------------------------------------------------------- */
+export const OWNER_EMAILS = ['foysal.cyber@gmail.com'];
 
 /* Deploy the site to its real address and update these three, so
    canonical tags, Open Graph cards and the sitemap point correctly. */

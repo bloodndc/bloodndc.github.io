@@ -54,15 +54,19 @@ Project: `blood-donate-ndc`
    Without this step every read returns *Missing or insufficient permissions*
    and the site silently falls back to local demo data.
 
-### 2. Moderator access (email + password)
+### 2. Admin access — owner & moderators (email + password)
 
 1. In the Firebase console open **Authentication → Sign-in method** and enable **Email/Password**.
-2. Open **Authentication → Users → Add user** and create the moderator account
-   (email + a strong password). Only accounts created here can moderate.
-3. Publish [`firestore.rules`](firestore.rules) — it grants moderator writes to
-   Email/Password accounts only (the app itself can never register one).
-4. Open the deployed `admin.html` and sign in with that email and password.
-   The session stays signed in on the device; use **Sign out** when done.
+2. **Owner:** the email listed in `OWNER_EMAILS` (`assets/js/config.js`) *and* in `isOwner()`
+   (`firestore.rules`) — keep both identical. The owner gets full control, including deletes.
+3. **Moderators:** create one account per person under **Authentication → Users → Add user**
+   (email + strong password). Moderators can approve/reject emergency requests, verify donors,
+   read the inbox and publish notices — but can **never delete or edit existing records**.
+   These limits are enforced by the Firestore rules (`changedOnly(...)` field restrictions),
+   not just hidden in the UI.
+4. Publish [`firestore.rules`](firestore.rules).
+5. Sign in at `admin.html`. To remove a moderator later, disable or delete their account in the
+   console — their access ends immediately.
 
 ### 3. Deploy to GitHub Pages
 

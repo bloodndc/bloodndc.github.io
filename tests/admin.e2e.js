@@ -26,6 +26,10 @@ const check = (n, c, d) => r.check(n, c, d);
   fs.cpSync(SRC, ROOT, { recursive: true, filter: (s) => !s.includes('/node_modules') && !s.includes('/tests') });
 
 
+  // The test copy gets a deterministic owner email; the real one ships untouched.
+  const cfg = path.join(ROOT, 'assets/js/config.js');
+  fs.writeFileSync(cfg, fs.readFileSync(cfg, 'utf8').replace("'foysal.cyber@gmail.com'", "'owner@test.local'"));
+
   const server = await serve(ROOT, PORT);
   const browser = await chromium.launch({ executablePath: exe, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
@@ -87,7 +91,7 @@ const check = (n, c, d) => r.check(n, c, d);
     fb.state.fa = {
       onAuthStateChanged(auth, cb) { listener = cb; setTimeout(() => cb(current), 30); return () => {}; },
       signInWithEmailAndPassword(auth, email, pass) {
-        if (email !== 'moderator@onedrop.org' || pass !== 'hunter2hunter2') {
+        if (pass !== 'hunter2hunter2') {
           const e = new Error('Bad creds'); e.code = 'auth/invalid-credential';
           return Promise.reject(e);
         }
@@ -104,7 +108,7 @@ const check = (n, c, d) => r.check(n, c, d);
   check('admin: login card shown without a session', await page.locator('#adminLogin').isVisible());
   check('admin: dashboard hidden before sign-in', !(await page.locator('#adminPanel').isVisible()));
 
-  await page.fill('#adminEmail', 'moderator@onedrop.org');
+  await page.fill('#adminEmail', 'owner@test.local');
   await page.fill('#adminPass', 'wrong-pass');
   await page.click('#adminLoginBtn');
   await page.waitForTimeout(400);
@@ -115,8 +119,8 @@ const check = (n, c, d) => r.check(n, c, d);
   await page.click('#adminLoginBtn');
   await page.waitForTimeout(1200);
   check('admin: dashboard opens after password sign-in', await page.locator('#adminPanel').isVisible());
-  check('admin: signed-in email shown',
-    (await page.locator('#adminEmailOut').textContent()).includes('moderator@'));
+  check('admin: owner role shown for the owner email',
+    (await page.locator('#adminRoleOut').textContent()).includes('Owner'));
   check('admin: overview shows KPI cards', await page.locator('#overviewHost .stat-mini').count() >= 6,
     `cards=${await page.locator('#overviewHost .stat-mini').count()}`);
 
@@ -183,7 +187,7 @@ const check = (n, c, d) => r.check(n, c, d);
   await page.evaluate(async () => {
     const fb = await import('/assets/js/firebase.js');
     fb.state.ok = true; fb.state.authOk = true;
-    let current = { uid: 'mod_local_1', email: 'moderator@onedrop.org', providerData: [{ providerId: 'password' }] };
+    let current = { uid: 'mod_local_1', email: 'owner@test.local', providerData: [{ providerId: 'password' }] };
     fb.state.auth = { get currentUser() { return current; } };
     fb.state.fa = {
       onAuthStateChanged(auth, cb) { setTimeout(() => cb(current), 20); return () => {}; },
@@ -199,6 +203,38 @@ const check = (n, c, d) => r.check(n, c, d);
   await page.waitForTimeout(500);
   check('admin: sign out returns to the login card',
     (await page.locator('#adminGate').isVisible()) && !(await page.locator('#adminPanel').isVisible()));
+
+  /* ---------------- moderator role: limited powers only ---------------- */
+  await page.evaluate(async () => {
+    const fb = await import('/assets/js/firebase.js');
+    let current = { uid: 'mod_local_2', email: 'moderator@onedrop.org', providerData: [{ providerId: 'password' }] };
+    fb.state.auth = { get currentUser() { return current; } };
+    fb.state.fa = {
+      onAuthStateChanged(auth, cb) { setTimeout(() => cb(current), 20); return () => {}; },
+      signInWithEmailAndPassword() { return Promise.resolve({ user: current }); },
+      signOut() { current = null; return Promise.resolve(); }
+    };
+    const admin = await import('/assets/js/admin.js');
+    await admin.initAdmin();
+    const d = await import('/assets/js/data.js');
+    await d.addRequest({ patient: 'Mod View Pending', bloodGroup: 'O+', units: 1, hospital: 'H',
+      district: 'Dhaka', contactName: 'C', phone: '01700000002', note: '' });
+  });
+  await page.waitForTimeout(900);
+  check('admin: moderator role label shown', (await page.locator('#adminRoleOut').textContent()).includes('Moderator'));
+  await page.locator('[data-tab="donors"]').click();
+  await page.waitForTimeout(600);
+  check('admin: moderator cannot delete/edit donors',
+    (await page.locator('#adminDonors [data-a="delete"]').count()) === 0 &&
+    (await page.locator('#adminDonors [data-a="edit"]').count()) === 0);
+  check('admin: moderator can still verify donors', (await page.locator('#adminDonors [data-a="verify"]').count()) >= 1);
+  await page.evaluate(() => document.getElementById('btnRefresh').click());
+  await page.waitForTimeout(700);
+  await page.locator('[data-tab="requests"]').click();
+  await page.waitForTimeout(700);
+  check('admin: moderator sees Approve but never Delete',
+    (await page.locator('#adminRequests [data-a="delete"]').count()) === 0 &&
+    (await page.locator('#adminRequests [data-a="active"]').count()) >= 1);
 
   check('no uncaught page errors', errs.length === 0, errs.slice(0, 3).join(' | '));
 

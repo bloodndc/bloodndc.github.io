@@ -1,6 +1,6 @@
 /* Moderator dashboard — email/password sign-in */
 
-import { APP, VAPID_KEY, FIREBASE_CONFIG } from './config.js';
+import { APP, VAPID_KEY, FIREBASE_CONFIG, OWNER_EMAILS } from './config.js';
 import { initData, listDonors, listRequests, listMessages, markMessageRead, listAnnouncements,
          saveAnnouncement, deleteAnnouncement, updateDonor, deleteDonor, updateRequest, deleteRequest,
          clearLocalData, seedDemo, getStatSnapshot, isLive } from './data.js';
@@ -37,8 +37,11 @@ export async function initAdmin() {
   function openSession(user) {
     gate.hidden = true;
     panel.hidden = false;
+    ctx.role = (user.email && OWNER_EMAILS.includes(user.email)) ? 'owner' : 'moderator';
     const emailOut = document.getElementById('adminEmailOut');
     if (emailOut) emailOut.textContent = user.email || 'moderator';
+    const roleOut = document.getElementById('adminRoleOut');
+    if (roleOut) roleOut.textContent = ctx.role === 'owner' ? 'Owner — full control' : 'Moderator — limited powers';
     const so = document.getElementById('adminSignOut');
     if (so && !so.dataset.wired) {
       so.dataset.wired = '1';
@@ -87,7 +90,7 @@ async function loadAll() {
   const [donors, requests, messages, announcements] = await Promise.all([
     listDonors(), listRequests(), listMessages(), listAnnouncements()
   ]);
-  ctx = { donors, requests, messages, announcements };
+  ctx = { donors, requests, messages, announcements, role: ctx.role };
 }
 
 function wireTabs() {
@@ -138,6 +141,10 @@ async function renderOverview() {
       </div>
     </div>`;
 
+  if (ctx.role !== 'owner') {
+    document.getElementById('btnSeed').style.display = 'none';
+    document.getElementById('btnClearLocal').style.display = 'none';
+  }
   document.getElementById('btnRefresh').onclick = async () => { await loadAll(); renderOverview(); toast('Data refreshed.', 'success'); };
   document.getElementById('btnCopyRules').onclick = async () => {
     const ok = await copyText(FIRESTORE_RULES);
@@ -171,22 +178,22 @@ function renderDonors() {
       <td class="mono">${_e(prettyPhone(d.phone))}</td>
       <td><span class="pill pill-${d.status}">${d.status}</span>${d.available === false ? ' <span class="pill pill-off">busy</span>' : ''}</td>
       <td class="cell-actions">
-        <button class="btn btn-ghost btn-xs" data-a="edit">Edit</button>
         <button class="btn btn-ghost btn-xs" data-a="verify">${d.status === 'verified' ? 'Unverify' : 'Verify'}</button>
+        ${ctx.role === 'owner' ? `<button class="btn btn-ghost btn-xs" data-a="edit">Edit</button>
         <button class="btn btn-ghost btn-xs" data-a="toggle">${d.available !== false ? 'Set busy' : 'Set available'}</button>
-        <button class="btn btn-ghost btn-xs danger" data-a="delete">Delete</button>
+        <button class="btn btn-ghost btn-xs danger" data-a="delete">Delete</button>` : ''}
       </td>
     </tr>`).join('')}</tbody></table></div>`;
 
   host.querySelectorAll('tr[data-row]').forEach((tr) => {
     const d = ctx.donors.find((x) => x.id === tr.dataset.row);
-    tr.querySelector('[data-a="edit"]').onclick = () => openEditDonor(d);
-    tr.querySelector('[data-a="verify"]').onclick = async () => { await updateDonor(d.id, { status: d.status === 'verified' ? 'pending' : 'verified' }); await loadAll(); renderDonors(); toast('Status updated.', 'success'); };
-    tr.querySelector('[data-a="toggle"]').onclick = async () => { await updateDonor(d.id, { available: !(d.available !== false) }); await loadAll(); renderDonors(); toast('Availability updated.', 'success'); };
-    tr.querySelector('[data-a="delete"]').onclick = async () => {
+    tr.querySelector('[data-a="verify"]')?.addEventListener('click', async () => { await updateDonor(d.id, { status: d.status === 'verified' ? 'pending' : 'verified' }); await loadAll(); renderDonors(); toast('Status updated.', 'success'); });
+    tr.querySelector('[data-a="edit"]')?.addEventListener('click', () => openEditDonor(d));
+    tr.querySelector('[data-a="toggle"]')?.addEventListener('click', async () => { await updateDonor(d.id, { available: !(d.available !== false) }); await loadAll(); renderDonors(); toast('Availability updated.', 'success'); });
+    tr.querySelector('[data-a="delete"]')?.addEventListener('click', async () => {
       const ok = await dialog({ title: `Delete ${d.name}?`, body: '<p>This removes the donor permanently.</p>', confirmText: 'Delete', variant: 'danger' });
       if (ok) { await deleteDonor(d.id); await loadAll(); renderDonors(); toast('Deleted.', 'success'); }
-    };
+    });
   });
 }
 
@@ -248,8 +255,8 @@ function renderRequests() {
              <button class="btn btn-ghost btn-xs danger" data-a="cancelled">Reject</button>`
           : `<button class="btn btn-ghost btn-xs" data-a="fulfilled">Fulfilled</button>
              <button class="btn btn-ghost btn-xs" data-a="cancelled">Cancel</button>
-             <button class="btn btn-ghost btn-xs" data-a="active">Reopen</button>`}
-        <button class="btn btn-ghost btn-xs danger" data-a="delete">Delete</button>
+             ${ctx.role === 'owner' ? '<button class="btn btn-ghost btn-xs" data-a="active">Reopen</button>' : ''}`}
+        ${ctx.role === 'owner' ? '<button class="btn btn-ghost btn-xs danger" data-a="delete">Delete</button>' : ''}
       </td>
     </tr>`).join('')}</tbody></table></div>`;
 
@@ -293,14 +300,14 @@ function renderAnnouncements() {
         <span class="pill pill-${a.level === 'alert' ? 'cancelled' : 'pending'}">${_e(a.level)}</span>
         <div><strong>${_e(a.title)}</strong><span class="muted small">${_e(a.body)}</span></div>
         <button class="btn btn-ghost btn-xs" data-a="toggle">${a.active ? 'Hide' : 'Show'}</button>
-        <button class="btn btn-ghost btn-xs danger" data-a="delete">Delete</button>
+        ${ctx.role === 'owner' ? '<button class="btn btn-ghost btn-xs danger" data-a="delete">Delete</button>' : ''}
       </div>`).join('')
     : '<p class="muted">No announcements yet.</p>';
 
   list.querySelectorAll('[data-ann]').forEach((row) => {
     const a = ctx.announcements.find((x) => x.id === row.dataset.ann);
     row.querySelector('[data-a="toggle"]').onclick = async () => { await saveAnnouncement({ ...a, active: !a.active }); await loadAll(); renderAnnouncements(); };
-    row.querySelector('[data-a="delete"]').onclick = async () => { await deleteAnnouncement(a.id); await loadAll(); renderAnnouncements(); };
+    row.querySelector('[data-a="delete"]')?.addEventListener('click', async () => { await deleteAnnouncement(a.id); await loadAll(); renderAnnouncements(); });
   });
 }
 
@@ -342,13 +349,14 @@ export const FIRESTORE_RULES = `rules_version = '2';
 
 // Firebase console -> Firestore Database -> Rules -> paste this whole file -> Publish.
 //
-// Access model
+// Roles
 //   * READ the directory: anyone.
 //   * CREATE / edit own records: any signed-in visitor (anonymous session).
-//   * MODERATOR powers (verify/suspend/delete any record, publish
-//     announcements, read the inbox, settings): ONLY Email/Password
-//     accounts - the users YOU create in the Firebase console under
-//     Authentication -> Users. Anonymous visitors can never get these.
+//   * OWNER (full control, incl. deletes): the Email/Password console account(s)
+//     listed in isOwner() below. Keep that list in sync with config.js.
+//   * MODERATOR (limited): any other Email/Password console account. May approve
+//     requests, verify donors, read the inbox and publish notices — but can
+//     NEVER delete or edit existing records. Enforced server-side.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -357,14 +365,27 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Moderator = an account created in the Firebase console with the
-    // Email/Password provider (this app never registers such accounts).
-    function isModerator() {
+    function isPasswordAccount() {
       return request.auth != null
         && request.auth.token.firebase.sign_in_provider == 'password';
     }
 
-    // Phone numbers must look like a real Bangladeshi mobile number.
+    // OWNER — project lead. Add further owner emails here if ever needed.
+    function isOwner() {
+      return isPasswordAccount()
+        && request.auth.token.email in ['foysal.cyber@gmail.com'];
+    }
+
+    // MODERATOR — any Email/Password account created in the console.
+    function isStaff() {
+      return isPasswordAccount();
+    }
+
+    // True when the update touches only the listed fields.
+    function changedOnly(fields) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(fields);
+    }
+
     function validPhone(v) {
       return v is string && v.matches('^(\\+880|0)1[3-9][0-9]{8}$');
     }
@@ -384,7 +405,13 @@ service cloud.firestore {
         && validPhone(request.resource.data.phone)
         && validGroup(request.resource.data.bloodGroup);
 
-      allow update, delete: if isModerator()
+      // Owner: anything. Donor: own record. Moderator: verify/unverify only.
+      allow update: if isOwner()
+        || (isSignedIn() && resource.data.uid == request.auth.uid)
+        || (isStaff() && changedOnly(['status', 'updatedAt'])
+            && request.resource.data.status in ['pending', 'verified']);
+
+      allow delete: if isOwner()
         || (isSignedIn() && resource.data.uid == request.auth.uid);
     }
 
@@ -395,26 +422,32 @@ service cloud.firestore {
         && validPhone(request.resource.data.phone)
         && validGroup(request.resource.data.bloodGroup);
 
-      // Owners may edit details or close their own request, but only a
-      // moderator can publish (pending -> active) or reopen it.
-      allow update, delete: if isModerator()
+      // Owner: anything. Poster: details + closing own request.
+      // Moderator: status changes only (approve / fulfil / cancel).
+      allow update: if isOwner()
         || (isSignedIn() && resource.data.uid == request.auth.uid
             && (request.resource.data.status == resource.data.status
-                || request.resource.data.status in ['fulfilled', 'cancelled']));
+                || request.resource.data.status in ['fulfilled', 'cancelled']))
+        || (isStaff() && changedOnly(['status', 'updatedAt'])
+            && request.resource.data.status in ['active', 'fulfilled', 'cancelled']);
+
+      allow delete: if isOwner()
+        || (isSignedIn() && resource.data.uid == request.auth.uid);
     }
 
-    // Visitor inbox: anyone can write a message; only moderators read it.
+    // Visitor inbox: staff can read and mark read; only owner can delete.
     match /messages/{messageId} {
-      allow read: if isModerator();
+      allow read: if isStaff();
       allow create: if request.resource.data.message is string
                     && request.resource.data.message.size() < 1000;
-      allow update, delete: if isModerator();
+      allow update: if isStaff() && changedOnly(['read', 'updatedAt']);
+      allow delete: if isOwner();
     }
 
-    // Announcements, audit trail and settings: moderators only.
     match /announcements/{id} {
       allow read: if true;
-      allow write: if isModerator();
+      allow create, update: if isStaff();
+      allow delete: if isOwner();
     }
 
     // Daily counters, best effort.
@@ -424,12 +457,12 @@ service cloud.firestore {
     }
 
     match /audit/{id} {
-      allow read, write: if isModerator();
+      allow read, write: if isOwner();
     }
 
     match /settings/{id} {
       allow read: if true;
-      allow write: if isModerator();
+      allow write: if isOwner();
     }
 
     // Everything else: closed.

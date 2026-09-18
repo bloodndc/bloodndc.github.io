@@ -77,16 +77,20 @@
               open <strong>Authentication → Sign-in method</strong> and enable <strong>Email/Password</strong>.<br>
               2. Open <strong>Authentication → Users → Add user</strong>, enter the moderator email
               and a strong password, and save.<br>
-              3. Publish <code>firestore.rules</code> under <strong>Firestore → Rules</strong> —
-              it grants moderator powers only to Email/Password accounts.<br>
-              4. Sign in on this page. The session stays signed in on this device.
+              3. Publish <code>firestore.rules</code> under <strong>Firestore → Rules</strong>.<br>
+              4. Sign in on this page. The session stays signed in on this device.<br><br>
+              <strong>Roles:</strong> the owner email listed in <code>OWNER_EMAILS</code> (and in the rules)
+              gets full control, including deletes. Every other console account is a
+              <em>moderator</em>: approve requests, verify donors, read the inbox, publish notices —
+              but can never delete or edit existing records. The limits are enforced by the
+              database rules, not just the interface.
             </div>
           </details>
         </div>
 
         <div id="adminPanel" hidden>
           <div class="admin-session">
-            <span class="muted small">Signed in as <strong id="adminEmailOut"></strong></span>
+            <span class="muted small">Signed in as <strong id="adminEmailOut"></strong> · <span id="adminRoleOut" class="muted small"></span></span>
             <button class="btn btn-ghost btn-xs" id="adminSignOut" type="button">Sign out</button>
           </div>
           <div class="admin-tabs" role="tablist">
