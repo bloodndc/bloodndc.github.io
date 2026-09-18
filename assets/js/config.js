@@ -25,7 +25,7 @@ export const FIREBASE_CONFIG = {
    canonical tags, Open Graph cards and the sitemap point correctly. */
 export const SITE_URL  = 'https://onedropndc.github.io';
 export const SITE_NAME = 'One Drop — A Drop of Life';
-export const APP_VERSION = '1.1.0';
+export const APP_VERSION = '1.7.0';
 
 /* Optional: Web push (Firebase Cloud Messaging).
    1. Firebase console → Project settings → Cloud Messaging → Web Push certificates → Generate key pair
