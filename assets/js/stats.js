@@ -98,6 +98,7 @@ function statCard(label, value, sub, ico, hue) {
 /* ------------------------------------------ eligibility tool */
 export function initEligibilityWidget(host) {
   if (!host) return;
+  if (!host) return;
   const options = BLOOD_GROUPS.map((g) => `<option value="${g}">${g} — ${GROUP_META[g].label}</option>`).join('');
   const today = new Date().toISOString().slice(0, 10);
   host.innerHTML = `

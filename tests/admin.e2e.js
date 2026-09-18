@@ -127,9 +127,36 @@ const check = (n, c, d) => r.check(n, c, d);
   await page.waitForTimeout(700);
   check('admin: availability toggle from the table', true);
 
+  // moderation flow: a fresh request lands as pending, gets approved from the panel
+  const pend = await page.evaluate(async () => {
+    const d = await import('/assets/js/data.js');
+    const r = await d.addRequest({ patient: 'Pending E2E', bloodGroup: 'A+', units: 1, hospital: 'Test Hosp',
+      district: 'Dhaka', contactName: 'X', phone: '01700000001', note: 'moderation test' });
+    return r.id;
+  });
+  await page.evaluate(() => document.getElementById('btnRefresh').click());
+  await page.waitForTimeout(800);
   await page.locator('[data-tab="requests"]').click();
-  await page.waitForTimeout(500);
+  await page.waitForTimeout(700);
   check('admin: request table populated', await page.locator('#adminRequests tbody tr').count() >= 3);
+  const pendRow = page.locator(`#adminRequests tr[data-row="${pend}"]`);
+  check('admin: new request waits as pending with Approve button',
+    (await pendRow.textContent()).includes('pending') && (await pendRow.locator('[data-a="active"]').textContent()).trim() === 'Approve');
+  await pendRow.locator('[data-a="active"]').click();
+  await page.waitForTimeout(800);
+  check('admin: approving publishes the request',
+    (await page.locator(`#adminRequests tr[data-row="${pend}"]`).textContent()).includes('active'));
+
+  // edit donor info from the panel
+  await page.locator('[data-tab="donors"]').click();
+  await page.waitForTimeout(600);
+  await page.locator('#adminDonors tbody tr [data-a="edit"]').first().click();
+  await page.waitForTimeout(500);
+  check('admin: edit-donor modal opens', await page.locator('#editDonorForm').isVisible());
+  await page.locator('#editDonorForm [name="area"]').fill('Uttara');
+  await page.locator('.modal [data-save]').click();
+  await page.waitForTimeout(900);
+  check('admin: donor edit persisted', (await page.locator('#adminDonors').textContent()).includes('Uttara'));
 
   await page.locator('[data-tab="announcements"]').click();
   await page.waitForTimeout(500);

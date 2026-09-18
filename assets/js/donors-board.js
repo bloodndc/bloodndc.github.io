@@ -234,6 +234,9 @@ function card(d) {
     </div>
 
     <div class="dc-tags">
+      ${d.status === 'verified'
+        ? '<span class="tag tag-verified">Verified by the team</span>'
+        : '<span class="tag tag-self">Self-reported · not verified yet</span>'}
       <span class="tag ${available ? 'tag-ok' : 'tag-off'}">${available ? 'Available now' : `Busy — back ${formatDate(eligible)}`}</span>
       ${dist != null ? `<span class="tag tag-dist" title="Approximate distance">${icon('pin')}${distanceLabel(dist)}</span>` : ''}
       ${d.donations ? `<span class="tag">${d.donations} donation${d.donations > 1 ? 's' : ''}</span>` : ''}

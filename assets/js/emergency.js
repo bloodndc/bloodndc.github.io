@@ -32,8 +32,10 @@ export function renderRequestFeed(host, opts = {}) {
 }
 
 function paintFeed(host, opts) {
-  const active = liveRows.filter((r) => r.status === 'active' && !expired(r));
-  const done = liveRows.filter((r) => r.status !== 'active' || expired(r));
+  // Public board: pending rows await moderation; expired rows auto-remove.
+  const visible = liveRows.filter((r) => r.status !== 'pending' && !expired(r));
+  const active = visible.filter((r) => r.status === 'active');
+  const done = visible.filter((r) => r.status !== 'active');
   const limit = opts.limit || active.length;
   const list = active.slice(0, limit);
 
@@ -218,7 +220,7 @@ function makePoster(r) {
   x.fillStyle = '#ffd9de'; x.font = `700 34px ${SYS}`;
   x.fillText('O N E   D R O P', W / 2, 96);
   x.fillStyle = '#e8aab2'; x.font = `500 26px ${SYS}`;
-  x.fillText('A Drop of Life · Notre Dame College · Batch 27 · Group 11', W / 2, 138);
+  x.fillText('A Drop of Life · Notre Dame College · Batch 27', W / 2, 138);
 
   x.save(); x.shadowColor = 'rgba(0,0,0,.45)'; x.shadowBlur = 40; x.shadowOffsetY = 16;
   dropPath(x, W / 2, 420, 170); x.fillStyle = '#ffffff'; x.fill(); x.restore();
@@ -308,10 +310,11 @@ export function initRequestForm() {
     form.reset();
     if (by) by.value = new Date(Date.now() + 24 * 36e5 - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 16);
 
-    toast(isLive() ? 'Request published — donors are being alerted.' : 'Saved on this device (offline mode). It will sync once Firebase is reachable.', 'success', 5200);
+    toast('Request submitted — a moderator reviews it and it goes live shortly.', 'success', 6000);
     dialog({
-      title: 'Request posted',
-      body: `<p>Sharing this request multiplies your chances of finding a donor within the hour.</p>`,
+      title: 'Request sent for review',
+      body: `<p>A moderator will approve it within minutes; approved requests appear on the live board and trigger alerts.
+      Meanwhile, sharing this request multiplies your chances of finding a donor within the hour.</p>`,
       confirmText: 'Share on WhatsApp', variant: 'primary'
     }).then((yes) => { if (yes) shareRequest(saved); });
   });

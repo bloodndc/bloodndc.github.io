@@ -1,6 +1,6 @@
 /* =============================================================
    One Drop — A Drop of Life
-   Notre Dame College · Batch 27 · Group 11
+   Notre Dame College · Batch 27
    Global configuration
    ============================================================= */
 
@@ -64,14 +64,16 @@ export const LS = {
   REVEALS:   'lifeline:reveals',
   SEEDED:    'lifeline:seeded',
   NOTIFY:    'lifeline:notify',
+  ANN_SEEN:  'lifeline:annSeen',
   MY_DONOR:  'lifeline:myDonorId',
+  RECOVERY:  'lifeline:recoveryCode',
   SW_VER:    'lifeline:swVersion'
 };
 
 export const APP = {
   name: 'One Drop',
   tagline: 'A Drop of Life',
-  org: 'Notre Dame College · Batch 27 · Group 11',
+  org: 'Notre Dame College · Batch 27',
   developer: 'Foysal Mahmud',
   developerUrl: 'https://foysalcyber.github.io/',
   emergencyHotline: '' // e.g. '+8801700000000' — shown in the footer when set

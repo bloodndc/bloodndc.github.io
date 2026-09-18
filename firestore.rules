@@ -55,8 +55,12 @@ service cloud.firestore {
         && validPhone(request.resource.data.phone)
         && validGroup(request.resource.data.bloodGroup);
 
+      // Owners may edit details or close their own request, but only a
+      // moderator can publish (pending -> active) or reopen it.
       allow update, delete: if isModerator()
-        || (isSignedIn() && resource.data.uid == request.auth.uid);
+        || (isSignedIn() && resource.data.uid == request.auth.uid
+            && (request.resource.data.status == resource.data.status
+                || request.resource.data.status in ['fulfilled', 'cancelled']));
     }
 
     // Visitor inbox: anyone can write a message; only moderators read it.

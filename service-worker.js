@@ -2,7 +2,7 @@
    App-shell cache first, network-first for navigation (so new deploys
    are picked up), runtime cache for the Firebase CDN modules. */
 
-const VERSION = 'onedrop-v1.5.0';
+const VERSION = 'onedrop-v1.6.0';
 const SHELL = `${VERSION}-shell`;
 const RUNTIME = `${VERSION}-runtime`;
 

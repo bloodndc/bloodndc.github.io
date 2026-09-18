@@ -106,6 +106,7 @@ function cleanDonor(d) {
     lng: d.lng === '' || d.lng === undefined || d.lng === null ? null : Number(d.lng),
     locationSource: d.locationSource || (d.lat ? 'gps' : 'district'),
     note: String(d.note || '').trim().slice(0, 240),
+    recoveryHash: typeof d.recoveryHash === 'string' ? d.recoveryHash : null,
     age: d.age ? Math.min(80, Math.max(16, Number(d.age))) : null,
     donations: Number(d.donations) || 0,
     status: d.status || 'pending',   // pending | verified | suspended
@@ -232,7 +233,8 @@ function cleanRequest(r) {
     neededBy: r.neededBy || null,
     note: String(r.note || '').trim().slice(0, 300),
     urgency: r.urgency === 'critical' ? 'critical' : 'urgent',
-    status: r.status || 'active',     // active | fulfilled | expired | cancelled
+    recoveryHash: typeof r.recoveryHash === 'string' ? r.recoveryHash : null,
+    status: r.status || 'active',     // pending | active | fulfilled | expired | cancelled
     uid: r.uid || null,
     createdAt: r.createdAt || now(),
     updatedAt: now()
@@ -242,7 +244,7 @@ function cleanRequest(r) {
 export async function addRequest(raw) {
   await initData();
   const user = await ensureAuth();
-  const data = cleanRequest({ ...raw, uid: user ? user.uid : rid('anon') });
+  const data = cleanRequest({ ...raw, status: 'pending', uid: user ? user.uid : rid('anon') });
   try {
     const ref = await tx('addRequest', async () => {
       const r = await fb.fs.addDoc(fb.fs.collection(fb.db, COL.REQUESTS), { ...data, createdAt: serverTs(), updatedAt: serverTs() });

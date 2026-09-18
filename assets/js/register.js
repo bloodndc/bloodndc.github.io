@@ -2,6 +2,11 @@
 
 import { BLOOD_GROUPS, isValidPhone, normalizePhone, isPlausibleDate } from './blood.js';
 import { addDonor, updateDonor, listDonors, isLive, nextEligibleDate } from './data.js';
+
+/* Lost-phone recovery: a saved code + the registered number re-links the
+   profile on a new device. No OTP, no account, no extra signup steps. */
+const hashRecovery = (s) => { let h = 5381; for (const c of String(s).toUpperCase().replace(/\s/g, '')) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0; return h.toString(36); };
+const makeRecoveryCode = () => 'OD-' + Array.from({ length: 6 }, () => 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 31)]).join('');
 import { icon, toast, bootUI, dialog, shareUrl, copyText, bloodBadge, avatar, escapeHtml as _e } from './ui.js';
 import { DISTRICTS, getPosition } from './geo.js';
 import { DONATION_COOLDOWN_DAYS, LS } from './config.js';
@@ -184,6 +189,9 @@ async function submit(form) {
     donations: Number(form.elements.donations.value) || 0
   };
 
+  let recoveryCode = null;
+  if (!state.editingId) { recoveryCode = makeRecoveryCode(); data.recoveryHash = hashRecovery(recoveryCode); }
+
   let saved;
   if (state.editingId) saved = { id: state.editingId, ...(await updateDonor(state.editingId, data), data) };
   else saved = await addDonor(data);
@@ -191,15 +199,16 @@ async function submit(form) {
   if (!state.editingId) {
     state.editingId = saved.id;
     localStorage.setItem(LS.MY_DONOR, saved.id);
+    if (recoveryCode) localStorage.setItem(LS.RECOVERY, recoveryCode);
     const user = await waitForAuth(1500);
     if (user) localStorage.setItem(LS.UID, user.uid);
   }
 
   btn.disabled = false; btn.classList.remove('is-loading'); btn.innerHTML = original;
-  showSuccess(saved);
+  showSuccess(saved, recoveryCode);
 }
 
-function showSuccess(d) {
+function showSuccess(d, code) {
   const panel = document.getElementById('successPanel');
   if (!panel) { toast('Saved successfully.', 'success'); return; }
   panel.hidden = false;
@@ -217,6 +226,17 @@ function showSuccess(d) {
         </div>
         ${bloodBadge(d.bloodGroup, 'lg')}
       </div>
+      ${code ? `<div class="success-card" style="margin-top:.9rem;border-style:dashed">
+        <div>
+          <strong>Recovery code — keep it safe</strong>
+          <span class="muted small">If you ever lose this phone, this code plus your mobile number restores your profile
+          on a new device. No account, no OTP. Screenshot it or write it down.</span>
+        </div>
+        <div style="display:flex;gap:.6rem;align-items:center">
+          <code style="font-size:1.15rem;font-weight:800;letter-spacing:.06em">${code}</code>
+          <button class="btn btn-ghost btn-sm" id="btnCopyCode" type="button">Copy</button>
+        </div>
+      </div>` : ''}
       <div class="success-actions">
         <button class="btn btn-primary" id="btnShareProfile">${icon('share')} Share my profile</button>
         <a class="btn btn-ghost" href="my-donor.html">${icon('user')} Edit my profile anytime</a>
@@ -225,6 +245,10 @@ function showSuccess(d) {
       <p class="muted small">${isLive() ? 'Saved to the shared cloud database.' : 'Saved on this device (offline mode) — it will sync when Firebase is reachable.'}</p>
     </div>`;
   panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  panel.querySelector('#btnCopyCode')?.addEventListener('click', async () => {
+    const ok = await copyText(code);
+    toast(ok ? 'Recovery code copied.' : 'Copy failed.', ok ? 'success' : 'error');
+  });
   panel.querySelector('#btnShareProfile')?.addEventListener('click', () => {
     const url = new URL('donors.html', location.href);
     url.searchParams.set('q', d.name);
@@ -246,9 +270,14 @@ export async function initMyDonor() {
     host.innerHTML = `<div class="empty">
       <div class="empty-mark">${icon('user')}</div>
       <h3>No donor profile on this device</h3>
-      <p>Profiles are tied to the browser you registered from. Register here, or re-register on your original device.</p>
-      <a class="btn btn-primary" href="register.html">Register as a donor</a>
+      <p>Profiles are tied to the browser you registered from. Register here — or, if this is a new phone, recover your
+      existing profile with your recovery code.</p>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center">
+        <a class="btn btn-primary" href="register.html">Register as a donor</a>
+        <button class="btn btn-ghost" id="btnRecover" type="button">Recover my profile</button>
+      </div>
     </div>`;
+    wireRecovery();
     return;
   }
 
@@ -269,6 +298,8 @@ export async function initMyDonor() {
         <li><span>Donations logged</span><strong>${mine.donations || 0}</strong></li>
         <li><span>Cooling-off rule</span><strong>${DONATION_COOLDOWN_DAYS} days</strong></li>
       </ul>
+      ${localStorage.getItem(LS.RECOVERY) ? `<p class="muted small" style="margin:.2rem 0 0">Recovery code on this device:
+        <strong style="letter-spacing:.06em">${_e(localStorage.getItem(LS.RECOVERY))}</strong> — keep it saved somewhere else too.</p>` : ''}
       <div class="my-actions">
         <a class="btn btn-primary" href="register.html">${icon('edit')} Edit profile</a>
         <button class="btn btn-ghost" id="btnToggleAvail">${mine.available !== false ? 'Mark as busy' : 'Mark as available'}</button>
@@ -276,6 +307,51 @@ export async function initMyDonor() {
         <button class="btn btn-ghost danger" id="btnRemoveProfile">${icon('trash')} Remove my listing</button>
       </div>
     </div>`;
+
+  function wireRecovery() {
+    host.querySelector('#btnRecover')?.addEventListener('click', () => {
+      const wrap = document.createElement('div');
+      wrap.className = 'modal';
+      wrap.innerHTML = `
+        <div class="modal-backdrop" data-close></div>
+        <div class="modal-card" role="dialog" aria-modal="true">
+          <h2>Recover your profile</h2>
+          <div class="modal-body">
+            <p class="muted small">Enter the mobile number you registered with and the recovery code you saved.</p>
+            <form id="recoverForm" style="display:grid;gap:.7rem">
+              <div class="field"><label>Mobile number</label><input class="input" name="phone" inputmode="tel" placeholder="01XXXXXXXXX" required></div>
+              <div class="field"><label>Recovery code</label><input class="input" name="code" placeholder="OD-XXXXXX" autocomplete="off" required></div>
+            </form>
+            <p class="gate-error" id="recoverErr" role="alert"></p>
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-ghost" data-close>Cancel</button>
+            <button class="btn btn-primary" data-save>Recover</button>
+          </div>
+        </div>`;
+      document.getElementById('modalRoot').appendChild(wrap);
+      const close = () => wrap.remove();
+      wrap.addEventListener('click', (e) => { if (e.target.hasAttribute('data-close')) close(); });
+      wrap.querySelector('[data-save]').addEventListener('click', async () => {
+        const f = wrap.querySelector('#recoverForm');
+        const phone = normalizePhone(f.elements.phone.value);
+        const code = f.elements.code.value.trim();
+        const err = wrap.querySelector('#recoverErr');
+        if (!/^(\+880|0)1[3-9]\d{8}$/.test(phone)) { err.textContent = 'Enter a valid Bangladeshi mobile number.'; return; }
+        const rows = await listDonors();
+        const cand = rows.find((r) => r.phone === phone && r.status !== 'suspended');
+        if (!cand || !cand.recoveryHash || cand.recoveryHash !== hashRecovery(code)) {
+          err.textContent = 'No matching profile. Check the number and the code, then try again.';
+          return;
+        }
+        localStorage.setItem(LS.MY_DONOR, cand.id);
+        if (cand.uid) localStorage.setItem(LS.UID, cand.uid);
+        close();
+        toast('Profile recovered. Welcome back.', 'success');
+        setTimeout(() => location.reload(), 600);
+      });
+    });
+  }
 
   host.querySelector('#btnToggleAvail').addEventListener('click', async () => {
     await updateDonor(mine.id, { available: !(mine.available !== false) });

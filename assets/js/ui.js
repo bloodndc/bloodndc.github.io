@@ -124,7 +124,7 @@ export function mountShell(active = 'home') {
     </div>
     <div class="wrap footer-credits">
       <p class="credit-line">
-        <span class="credit"><strong>Idea &amp; initiative</strong> Students of Notre Dame College, Batch 27 — Group 11</span>
+        <span class="credit"><strong>Idea &amp; initiative</strong> Students of Notre Dame College, Batch 27</span>
         <span class="credit"><strong>Developed by</strong> <a href="${APP.developerUrl}" target="_blank" rel="noopener noreferrer">Foysal Mahmud</a></span>
       </p>
       <p class="credit-meta">

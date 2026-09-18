@@ -1,6 +1,6 @@
 /* Home page controller + shared app wiring */
 
-import { bootUI, icon, toast, initReveal, escapeHtml, notify } from './ui.js';
+import { bootUI as shellBoot, icon, toast, initReveal, escapeHtml, notify } from './ui.js';
 import { initData, subscribeDonors, subscribeAnnouncements, subscribeRequests, bumpStat } from './data.js';
 import { renderStats, initCompatibilityWidget, initEligibilityWidget } from './stats.js';
 import { BLOOD_GROUPS } from './blood.js';
@@ -8,7 +8,7 @@ import { renderRequestFeed } from './emergency.js';
 import { LS } from './config.js';
 
 export async function bootHome() {
-  bootUI('home');
+  shellBoot('home');
   await initData();
 
   /* Stats + donor pool */
@@ -89,7 +89,26 @@ export async function bootHome() {
 let knownRequests = null;
 let alertTimer = null;
 
+let alertsStarted = false;
 export function initAlerts() {
+  if (alertsStarted) return;
+  alertsStarted = true;
+
+  /* New notices published from the admin panel */
+  subscribeAnnouncements((rows) => {
+    const act = rows.filter((a) => a.active !== false);
+    if (!act.length) return;
+    const top = act.slice().sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')))[0];
+    const key = top.id || top.title;
+    const seen = localStorage.getItem(LS.ANN_SEEN);
+    if (seen === null) { localStorage.setItem(LS.ANN_SEEN, key); return; }
+    if (key !== seen) {
+      localStorage.setItem(LS.ANN_SEEN, key);
+      toast(`Notice from the team — ${top.title}`, 'info', 8000);
+      notify('New notice from One Drop', top.title);
+    }
+  });
+
   subscribeRequests((rows) => {
     const active = rows.filter((r) => r.status === 'active');
     if (knownRequests === null) { knownRequests = new Set(active.map((r) => r.id)); return; }
@@ -114,5 +133,6 @@ export function initAlerts() {
   });
 }
 
-/* Used by other pages that just need the shell */
-export { bootUI, toast, icon };
+/* Every page gets the shell AND the alert wiring (request + notice notifications). */
+export function bootUI(id) { shellBoot(id); initAlerts(); }
+export { toast, icon };

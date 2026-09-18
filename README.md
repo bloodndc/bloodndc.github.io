@@ -4,7 +4,7 @@ A production-ready, installable blood donor community website. Search verified
 donors by blood group and distance, post emergency blood requests that alert
 the whole network, and moderate everything from a small dashboard.
 
-**Idea & initiative:** Students of Notre Dame College, Batch 27 — Group 11
+**Idea & initiative:** Students of Notre Dame College, Batch 27
 **Developed by:** [Foysal Mahmud](https://foysalcyber.github.io/)
 
 ---

@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>One Drop — Find Blood Donors Near You | NDC Batch 27 Group 11</title>
+  <title>One Drop — Find Blood Donors Near You | NDC Batch 27</title>
   <meta name="description" content="One Drop is a free, volunteer-run blood donor community. Search verified donors by blood group and location, post emergency blood requests, and get alerts the moment someone nearby needs help.">
   <meta name="keywords" content="blood donor, blood donation Bangladesh, emergency blood, O negative donor, Dhaka blood bank, One Drop, Notre Dame College Batch 27">
-  <meta name="author" content="Foysal Mahmud — Notre Dame College Batch 27, Group 11">
+  <meta name="author" content="Foysal Mahmud — Notre Dame College Batch 27">
   <meta name="theme-color" content="#C8102E">
   <meta name="color-scheme" content="light">
   <meta name="robots" content="index, follow">
@@ -20,7 +20,7 @@
   <meta property="og:url" content="https://onedropndc.github.io/">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="One Drop — Find Blood Donors Near You">
-  <meta name="twitter:description" content="A free blood donor community built by Notre Dame College Batch 27, Group 11.">
+  <meta name="twitter:description" content="A free blood donor community built by Notre Dame College Batch 27.">
   <meta name="twitter:image" content="https://onedropndc.github.io/assets/img/logo-full.png">
 
   <link rel="manifest" href="manifest.webmanifest">
@@ -40,7 +40,7 @@
     "name": "One Drop — A Drop of Life",
     "description": "A volunteer-run blood donor network that connects people who need blood with verified donors nearby.",
     "url": "https://onedropndc.github.io/",
-    "founder": { "@type": "Organization", "name": "Notre Dame College, Batch 27 — Group 11" },
+    "founder": { "@type": "Organization", "name": "Notre Dame College, Batch 27" },
     "developer": { "@type": "Person", "name": "Foysal Mahmud", "url": "https://foysalcyber.github.io/" },
     "areaServed": "BD",
     "knowsAbout": ["Blood donation", "Emergency blood requests", "Volunteer coordination"]
@@ -87,10 +87,25 @@
             <button class="btn btn-primary" type="submit">Find donor</button>
           </form>
 
-          <div class="hero-actions">
-            <a class="btn btn-primary" href="emergency.html">Post an emergency request</a>
-            <a class="btn btn-ghost" href="register.html">Become a donor</a>
-            <button class="btn btn-ghost" data-install hidden>Install app</button>
+          <div class="hero-trio" role="group" aria-label="Primary actions">
+            <a class="action-tile" href="donors.html">
+              <span class="at-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.4" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="m16 16 4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>
+              <strong>Find a Donor</strong>
+              <span>Search the live directory by group, district or distance</span>
+            </a>
+            <a class="action-tile at-urgent" href="emergency.html">
+              <span class="at-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18v-4a5 5 0 0 1 10 0v4" fill="none" stroke="currentColor" stroke-width="1.9"/><rect x="4.5" y="18" width="3" height="3" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 3.4V1.9M4.6 6.4 3.5 5.3M19.4 6.4l1.1-1.1" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>
+              <strong>Request Blood</strong>
+              <span>Post an emergency — every alert-on volunteer is notified</span>
+            </a>
+            <a class="action-tile" href="register.html">
+              <span class="at-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.4-4.4-7.4-9.3A4.2 4.2 0 0 1 12 8.2a4.2 4.2 0 0 1 7.4 2.5C19.4 15.6 12 20 12 20Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+              <strong>I Want to Donate</strong>
+              <span>Join the directory in under a minute — free forever</span>
+            </a>
+          </div>
+          <div class="hero-actions" style="margin-top:.8rem">
+            <button class="btn btn-ghost btn-sm" data-install hidden>Install app</button>
           </div>
 
           <div class="hero-trust">
@@ -185,19 +200,6 @@
             worth calling first — the final decision always rests with the blood bank.</p>
         </div>
         <div class="panel" id="compatHost" data-reveal></div>
-      </div>
-    </section>
-
-    <!-- ELIGIBILITY CHECKER -->
-    <section class="section" id="eligibility">
-      <div class="wrap">
-        <div class="section-head" data-reveal>
-          <span class="kicker">Sixty-second self check</span>
-          <h2>Can I donate today?</h2>
-          <p>Choose your blood group and the date of your last donation. We will tell you instantly whether the standard
-            56-day cooling-off has passed — so you can promise only what your body can safely give.</p>
-        </div>
-        <div class="panel" id="eligibilityHost" data-reveal></div>
       </div>
     </section>
 

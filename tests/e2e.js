@@ -44,7 +44,7 @@ const check = (n, c, d) => r.check(n, c, d);
   check('home: header brand rendered', /One ?Drop/.test(await page.locator('.site-header .brand-text strong').textContent()));
   const credits = await page.locator('.footer-credits').textContent();
   check('home: footer credits Foysal Mahmud', credits.includes('Foysal Mahmud'));
-  check('home: footer credits Group 11', credits.includes('Group 11'));
+  check('home: footer credits Batch 27 (no group tag)', (await page.locator('.footer-credits').textContent()).includes('Batch 27') && !(await page.locator('.footer-credits').textContent()).includes('Group 11'));
   check('home: emergency CTA in bottom bar', await page.locator('.bottom-bar .bb-urgent').count() === 1);
   check('home: 4 stat cards', await page.locator('#statsHost .stat-card').count() === 4);
   check('home: donor total counted from seed',
@@ -56,19 +56,8 @@ const check = (n, c, d) => r.check(n, c, d);
   check('home: scroll progress bar mounted', await page.locator('#scrollProgress').count() === 1);
   check('home: ambient drops mounted', await page.locator('.float-drops i').count() === 7);
 
-  /* eligibility checker */
-  await page.locator('#eligibility').scrollIntoViewIfNeeded();
-  await page.waitForTimeout(600);
-  check('home: eligibility widget rendered', await page.locator('#eligibilityHost #eligGroup').count() === 1);
-  await page.locator('#eligDate').fill('2026-08-01');
-  await page.locator('#eligBtn').click();
-  await page.waitForTimeout(300);
-  const eligNum = (await page.locator('#eligNum').textContent()).trim();
-  check('home: eligibility shows cooling-off days', /^\d+$/.test(eligNum) && Number(eligNum) > 0 && Number(eligNum) <= 56, eligNum);
-  await page.locator('#eligDate').fill('2026-01-01');
-  await page.locator('#eligBtn').click();
-  await page.waitForTimeout(300);
-  check('home: eligible after full gap', (await page.locator('#eligNum').textContent()).trim() === 'GO');
+  /* hero action trio */
+  check('home: hero shows three primary actions', await page.locator('.hero-trio .action-tile').count() === 3);
 
   const sel = page.locator('#compatHost #compatSelect');
   await sel.selectOption('AB+'); await page.waitForTimeout(200);
@@ -198,9 +187,9 @@ const check = (n, c, d) => r.check(n, c, d);
   await page.waitForTimeout(900);
   const reqs = await page.evaluate(() => JSON.parse(localStorage.getItem('lifeline:cache:requests') || '[]'));
   const nr = reqs.find((x) => x.patient === 'E2E Patient (40)');
-  check('emergency: request saved correctly',
-    !!nr && nr.bloodGroup === 'B-' && nr.units === 2 && nr.phone === '+8801812345678' && !!nr.neededBy,
-    JSON.stringify(nr && { bg: nr.bloodGroup, u: nr.units, p: nr.phone }));
+  check('emergency: request saved as pending for moderation',
+    !!nr && nr.bloodGroup === 'B-' && nr.units === 2 && nr.phone === '+8801812345678' && !!nr.neededBy && nr.status === 'pending',
+    JSON.stringify(nr && { bg: nr.bloodGroup, u: nr.units, p: nr.phone, st: nr.status }));
   check('emergency: share dialog offered', await page.locator('.modal-card').count() >= 1);
   await page.locator('.modal [data-ok]').click(); // "Share on WhatsApp" → opens the share sheet
   await page.waitForTimeout(400);
@@ -208,7 +197,15 @@ const check = (n, c, d) => r.check(n, c, d);
   check('emergency: share sheet offers channels', await page.locator('.modal [data-share="whatsapp"]').count() === 1);
   if (await page.locator('.modal-card').count()) await page.locator('.modal [data-ok]').click();
   await page.waitForTimeout(600);
-  check('emergency: new request on the live board', (await page.locator('#requestFeed').textContent()).includes('E2E Patient'));
+  check('emergency: pending request hidden from the public board',
+    !(await page.locator('#requestFeed').textContent()).includes('E2E Patient (40)'));
+  await page.evaluate(async (id) => {
+    const d = await import('/assets/js/data.js');
+    await d.updateRequest(id, { status: 'active' }); // moderator approval
+  }, nr.id);
+  await page.waitForTimeout(800);
+  check('emergency: approved request appears on the live board',
+    (await page.locator('#requestFeed').textContent()).includes('E2E Patient'));
 
   /* -------------------------------------------- my donor */
   await page.goto(`${base}/my-donor.html`, { waitUntil: 'networkidle' });

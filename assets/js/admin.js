@@ -161,7 +161,7 @@ function miniStat(label, value, sub) {
 /* ------------------------------------------------------ donors */
 function renderDonors() {
   const host = document.getElementById('adminDonors');
-  const rows = ctx.donors.slice().sort((a, b) => (a.status === 'pending' ? -1 : 1) - (b.status === 'pending' ? -1 : 1));
+  const rows = ctx.donors.slice().sort((a, b) => (a.status === 'pending' ? -1 : 1) - (b.status === 'pending' ? -1 : 1) || (a.createdAt < b.createdAt ? 1 : -1));
   host.innerHTML = `<div class="table-wrap"><table class="data-table">
     <thead><tr><th>Donor</th><th>Group</th><th>Location</th><th>Contact</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>${rows.map((d) => `<tr data-row="${d.id}">
@@ -171,6 +171,7 @@ function renderDonors() {
       <td class="mono">${_e(prettyPhone(d.phone))}</td>
       <td><span class="pill pill-${d.status}">${d.status}</span>${d.available === false ? ' <span class="pill pill-off">busy</span>' : ''}</td>
       <td class="cell-actions">
+        <button class="btn btn-ghost btn-xs" data-a="edit">Edit</button>
         <button class="btn btn-ghost btn-xs" data-a="verify">${d.status === 'verified' ? 'Unverify' : 'Verify'}</button>
         <button class="btn btn-ghost btn-xs" data-a="toggle">${d.available !== false ? 'Set busy' : 'Set available'}</button>
         <button class="btn btn-ghost btn-xs danger" data-a="delete">Delete</button>
@@ -179,6 +180,7 @@ function renderDonors() {
 
   host.querySelectorAll('tr[data-row]').forEach((tr) => {
     const d = ctx.donors.find((x) => x.id === tr.dataset.row);
+    tr.querySelector('[data-a="edit"]').onclick = () => openEditDonor(d);
     tr.querySelector('[data-a="verify"]').onclick = async () => { await updateDonor(d.id, { status: d.status === 'verified' ? 'pending' : 'verified' }); await loadAll(); renderDonors(); toast('Status updated.', 'success'); };
     tr.querySelector('[data-a="toggle"]').onclick = async () => { await updateDonor(d.id, { available: !(d.available !== false) }); await loadAll(); renderDonors(); toast('Availability updated.', 'success'); };
     tr.querySelector('[data-a="delete"]').onclick = async () => {
@@ -188,21 +190,65 @@ function renderDonors() {
   });
 }
 
+function openEditDonor(d) {
+  const wrap = document.createElement('div');
+  wrap.className = 'modal';
+  wrap.innerHTML = `
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card" role="dialog" aria-modal="true">
+      <h2>Edit donor — ${_e(d.name)}</h2>
+      <div class="modal-body">
+        <form id="editDonorForm" style="display:grid;gap:.7rem">
+          <div class="field"><label>Full name</label><input class="input" name="name" value="${_e(d.name)}" required></div>
+          <div class="field"><label>Mobile number</label><input class="input" name="phone" value="${_e(prettyPhone(d.phone))}" required></div>
+          <div class="field"><label>Blood group</label><select class="input" name="bloodGroup">${['A+','A-','B+','B-','AB+','AB-','O+','O-'].map((g) => `<option ${g === d.bloodGroup ? 'selected' : ''}>${g}</option>`).join('')}</select></div>
+          <div class="field"><label>District</label><input class="input" name="district" value="${_e(d.district || '')}"></div>
+          <div class="field"><label>Area</label><input class="input" name="area" value="${_e(d.area || '')}"></div>
+          <div class="field"><label>Public note</label><input class="input" name="note" value="${_e(d.note || '')}"></div>
+        </form>
+        <p class="gate-error" id="editErr" role="alert"></p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" data-close>Cancel</button>
+        <button class="btn btn-primary" data-save>Save changes</button>
+      </div>
+    </div>`;
+  document.getElementById('modalRoot').appendChild(wrap);
+  const close = () => wrap.remove();
+  wrap.addEventListener('click', (e) => { if (e.target.hasAttribute('data-close')) close(); });
+  wrap.querySelector('[data-save]').addEventListener('click', async () => {
+    const f = wrap.querySelector('#editDonorForm');
+    const v = Object.fromEntries(new FormData(f).entries());
+    const phone = String(v.phone).replace(/[^\d+]/g, '');
+    if (!v.name.trim() || !/^(\+880|0)1[3-9]\d{8}$/.test(phone)) {
+      wrap.querySelector('#editErr').textContent = 'Enter a valid name and a Bangladeshi mobile number.';
+      return;
+    }
+    await updateDonor(d.id, { name: v.name.trim(), phone, bloodGroup: v.bloodGroup, district: v.district.trim(), area: v.area.trim(), note: v.note.trim() });
+    close();
+    await loadAll(); renderDonors(); toast('Donor updated.', 'success');
+  });
+}
+
 /* ---------------------------------------------------- requests */
 function renderRequests() {
   const host = document.getElementById('adminRequests');
+  const rows = ctx.requests.slice().sort((a, b) => (a.status === 'pending' ? -1 : 1) - (b.status === 'pending' ? -1 : 1));
   host.innerHTML = `<div class="table-wrap"><table class="data-table">
     <thead><tr><th>Patient / hospital</th><th>Group</th><th>Units</th><th>Needed by</th><th>State</th><th>Actions</th></tr></thead>
-    <tbody>${ctx.requests.map((r) => `<tr data-row="${r.id}">
+    <tbody>${rows.map((r) => `<tr data-row="${r.id}">
       <td><div class="cell-user"><div><strong>${_e(r.patient || 'Patient')}</strong><span class="muted small">${_e([r.hospital, r.district].filter(Boolean).join(' · '))}</span></div></div></td>
       <td>${bloodBadge(r.bloodGroup, 'sm')}</td>
       <td>${r.units || 1}</td>
       <td>${r.neededBy ? formatDate(r.neededBy) : 'ASAP'}</td>
       <td><span class="pill pill-${r.status === 'active' ? 'pending' : r.status}">${r.status}</span></td>
       <td class="cell-actions">
-        <button class="btn btn-ghost btn-xs" data-a="fulfilled">Fulfilled</button>
-        <button class="btn btn-ghost btn-xs" data-a="cancelled">Cancel</button>
-        <button class="btn btn-ghost btn-xs" data-a="active">Reopen</button>
+        ${r.status === 'pending'
+          ? `<button class="btn btn-primary btn-xs" data-a="active">Approve</button>
+             <button class="btn btn-ghost btn-xs danger" data-a="cancelled">Reject</button>`
+          : `<button class="btn btn-ghost btn-xs" data-a="fulfilled">Fulfilled</button>
+             <button class="btn btn-ghost btn-xs" data-a="cancelled">Cancel</button>
+             <button class="btn btn-ghost btn-xs" data-a="active">Reopen</button>`}
         <button class="btn btn-ghost btn-xs danger" data-a="delete">Delete</button>
       </td>
     </tr>`).join('')}</tbody></table></div>`;
@@ -349,8 +395,12 @@ service cloud.firestore {
         && validPhone(request.resource.data.phone)
         && validGroup(request.resource.data.bloodGroup);
 
+      // Owners may edit details or close their own request, but only a
+      // moderator can publish (pending -> active) or reopen it.
       allow update, delete: if isModerator()
-        || (isSignedIn() && resource.data.uid == request.auth.uid);
+        || (isSignedIn() && resource.data.uid == request.auth.uid
+            && (request.resource.data.status == resource.data.status
+                || request.resource.data.status in ['fulfilled', 'cancelled']));
     }
 
     // Visitor inbox: anyone can write a message; only moderators read it.
